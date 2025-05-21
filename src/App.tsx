@@ -1,35 +1,91 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import MainLayout from "./components/layout/MainLayout";
+import { useAuth } from "./state/authContext";
+import DonorsPage from "./pages/DonorsPage";
+import RequestsPage from "./pages/RequestsPage";
+import BloodBanksPage from "./pages/BloodBanksPage";
+import DonationsPage from "./pages/DonationsPage";
+import ReportsPage from "./pages/ReportsPage";
+import SettingsPage from "./pages/SettingsPage";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
+import PreferencesPage from "./pages/PreferencesPage";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const { isLoggedIn } = useAuth();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <BrowserRouter>
+      <Routes>
+        {/* Authenticated routes */}
+        <Route path="/" element={<MainLayout isLoggedIn={isLoggedIn} />}>
+          {/* Require authentication for these routes */}
+          {isLoggedIn ? (
+            <>
+              <Route index element={<HomePage />} />
+              {/* Add other authenticated routes here */}
+              <Route path="/dashboard" element={<HomePage />} />
+              <Route path="/donors" element={<DonorsPage />} />
+              <Route path="/requests" element={<RequestsPage />} />
+              <Route path="/blood-banks" element={<BloodBanksPage />} />
+              <Route path="/donations" element={<DonationsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route
+                path="/settings/account"
+                element={<AccountSettingsPage />}
+              />
+              <Route
+                path="/settings/preferences"
+                element={<PreferencesPage />}
+              />
+            </>
+          ) : (
+            // Redirect to login if not authenticated
+            <Route index element={<LoginPage />} />
+          )}
+        </Route>
 
-export default App
+        {/* Public routes */}
+        <Route
+          path="/login"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/" replace />
+            ) : (
+              <MainLayout isLoggedIn={false}>
+                <LoginPage />
+              </MainLayout>
+            )
+          }
+        />
+
+        {/* Quick login toggle for demo purposes - remove in production */}
+        <Route
+          path="/demo-toggle-login"
+          element={
+            <div className="p-5">
+              <h3>Authentication Demo Controls</h3>
+              <div className="p-3 border-round bg-primary text-white">
+                This demo toggle is disabled. Please log in/out using the real authentication flow.
+              </div>
+              <div className="mt-3">
+                <a href="/" className="text-primary">
+                  Go to Home
+                </a>
+              </div>
+            </div>
+          }
+        />
+
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;

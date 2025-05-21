@@ -10,11 +10,11 @@ Built with **React**, **PrimeReact**, and **Vite**, this frontend interacts with
 
 - **React** (with functional components & hooks)
 - **PrimeReact** – UI components
+- **PrimeFlex** – Utility CSS framework
 - **Vite** – Fast bundler & dev server
 - **Pinia** – State management (if you're using it, update this)
 - **Socket.IO / Firebase** – Realtime data
 - **Axios** – HTTP client
-- **Tailwind CSS** (optional; remove if not used)
 - **React Router** – Navigation & routing
 - **Google Maps API** – Geolocation & map views
 - **Twilio / SendGrid** – Communication (via backend)
