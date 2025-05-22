@@ -5,9 +5,9 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import MainLayout from "./components/layout/MainLayout";
 import { useAuth } from "./state/authContext";
-import DonorsPage from "./pages/DonorsPage/index";
+import { DonorsListPage as DonorsPage, DonorDetailsPage } from "./pages/DonorsPage";
 import RequestsPage from "./pages/RequestsPage";
-import BloodBanksPage from "./pages/BloodBanksPage";
+import BloodBanksRoutes from "./pages/BloodBanksPage/BloodBanksRoutes";
 import DonationsPage from "./pages/DonationsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -26,8 +26,9 @@ const App: React.FC = () => {
               <Route index element={<HomePage />} />
               <Route path="/dashboard" element={<HomePage />} />
               <Route path="/donors" element={<DonorsPage />} />
+              <Route path="/donors/:id" element={<DonorDetailsPage />} />
               <Route path="/requests" element={<RequestsPage />} />
-              <Route path="/blood-banks" element={<BloodBanksPage />} />
+              <Route path="/blood-banks/*" element={<BloodBanksRoutes />} />
               <Route path="/donations" element={<DonationsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />

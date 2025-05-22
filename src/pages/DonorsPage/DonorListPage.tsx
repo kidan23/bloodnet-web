@@ -7,39 +7,23 @@ import { Dialog } from "primereact/dialog";
 import { Paginator } from "primereact/paginator";
 import CreateDonorForm from "./CreateDonorForm";
 import DonorCard from "./DonorCard";
-import { useGlobalToast } from "../../components/layout/ToastContext";
 import type { Donor } from "./types";
 
 const DonorsPage: React.FC = () => {  // Pagination state
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [showDialog, setShowDialog] = useState(false);
-  
-  const toast = useGlobalToast();
   const queryClient = useQueryClient();
 
-  // Fetch donors with pagination
   const {
     data: donorData = { results: [], total: 0, page: 1, limit: 10 },
     isLoading,
     error,
   } = useDonors({ page, limit });
   const donors = donorData.results as Donor[] || (donorData as unknown as Donor[]);
-  const totalRecords = donorData.total || (Array.isArray(donors) ? donors.length : 0);
-  const handleCreateSuccess = () => {
+  const totalRecords = donorData.total || (Array.isArray(donors) ? donors.length : 0);  const handleCreateSuccess = () => {
     setShowDialog(false);
     queryClient.invalidateQueries({ queryKey: ["donors"] });
-  };
-
-  const handleViewDonorDetails = (id: string) => {
-    // In a future implementation, you could navigate to a details page
-    // or open a dialog with donor details
-    toast.current?.show({
-      severity: "info",
-      summary: "Info",
-      detail: `Viewing donor details with ID: ${id}`,
-      life: 3000,
-    });
   };
 
   const handlePageChange = (e: { first: number; rows: number; page: number }) => {
@@ -84,12 +68,10 @@ const DonorsPage: React.FC = () => {  // Pagination state
           </div>
         ) : (
           <>
-            {Array.isArray(donors) && donors.length > 0 ? (
-              <div>                {donors.map((donor: Donor) => (
+            {Array.isArray(donors) && donors.length > 0 ? (              <div>                {donors.map((donor: Donor) => (
                   <DonorCard 
                     key={donor._id} 
                     donor={donor} 
-                    onViewDetails={handleViewDonorDetails}
                   />
                 ))}
                 <Paginator

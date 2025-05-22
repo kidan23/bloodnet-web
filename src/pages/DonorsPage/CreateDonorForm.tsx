@@ -13,16 +13,20 @@ import { useGlobalToast } from "../../components/layout/ToastContext";
 import type { CreateDonorPayload } from "./types";
 import type { BloodType } from "./types";
 
-// Import Leaflet CSS - Add this to your main CSS file or import here
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-geosearch/dist/geosearch.css';
 
-// Initialize Leaflet icons to ensure they display correctly
-// Fix for Leaflet marker icon issue in webpack/vite environments
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+// Replace the default marker with a custom SVG marker
+const customMarkerIcon = new L.DivIcon({
+  html: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36">
+      <path fill="#d32f2f" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+  `,
+  className: '',
+  iconSize: [36, 36],
+  iconAnchor: [18, 36],
+  popupAnchor: [0, -36]
 });
 
 const bloodTypeOptions: { label: string; value: BloodType }[] = [
@@ -55,52 +59,6 @@ const defaultCenter = {
 };
 
 const defaultZoom = 13;
-
-// Leaflet search component
-// We're not using this anymore since we're manually implementing the search functionality
-/* 
-function SearchControl({ setMarkerPosition, setLatitude, setLongitude, setMapCenter }: {
-  setMarkerPosition: (position: {lat: number, lng: number} | null) => void;
-  setLatitude: (lat: number | null) => void;
-  setLongitude: (lng: number | null) => void;
-  setMapCenter: (center: {lat: number, lng: number}) => void;
-}) {
-  const map = useMap();
-  const provider = new OpenStreetMapProvider();
-  
-  useEffect(() => {
-    const searchControl = GeoSearchControl({
-      provider,
-      style: 'bar',
-      showMarker: false,
-      showPopup: false,
-      autoClose: true,
-      retainZoomLevel: false,
-      animateZoom: true,
-      keepResult: true,
-      searchLabel: 'Search for address'
-    });
-    
-    map.addControl(searchControl);
-    
-    // Handle search result
-    map.on('geosearch/showlocation', (e: any) => {
-      const { lat, lng } = e.location;
-      const newPosition = { lat, lng };
-      setMarkerPosition(newPosition);
-      setLatitude(lat);
-      setLongitude(lng);
-      setMapCenter(newPosition);
-    });
-    
-    return () => {
-      map.removeControl(searchControl);
-    };
-  }, [map, provider, setLatitude, setLongitude, setMarkerPosition, setMapCenter]);
-  
-  return null;
-}
-*/
 
 // Map click handler component
 function MapClickHandler({ setMarkerPosition, setLatitude, setLongitude, toast, preferredDonationCenter, setPreferredDonationCenter, setAddress, setCity, setState, setPostalCode, setCountry }: any) {
@@ -685,7 +643,8 @@ const CreateDonorForm: React.FC<CreateDonorFormProps> = ({ onSuccess, onCancel }
             zoom={defaultZoom}
             style={containerStyle}
             ref={mapRef}
-          >            <TileLayer
+          >
+            <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
@@ -712,6 +671,7 @@ const CreateDonorForm: React.FC<CreateDonorFormProps> = ({ onSuccess, onCancel }
               <Marker 
                 position={[markerPosition.lat, markerPosition.lng]}
                 draggable={true}
+                icon={customMarkerIcon}
                 eventHandlers={{
                   dragend: async (e) => {
                     const marker = e.target;
