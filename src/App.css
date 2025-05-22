@@ -1,3 +1,6 @@
+/* Import custom Leaflet styles */
+@import './styles/leaflet-custom.css';
+
 /* ...existing code... */
 .sidebar-animate {
   transition: opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1);

@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsLoggedIn(false);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/login';
+            window.location.href = '/';
           }
         } catch {
           setUser(null);
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsLoggedIn(false);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          window.location.href = '/';
         }
       }
       setLoading(false);

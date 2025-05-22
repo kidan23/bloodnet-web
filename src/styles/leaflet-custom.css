@@ -1,0 +1,73 @@
+/* OpenStreetMap/Leaflet Styles for Blood Donation App */
+
+/* Ensure the Leaflet container takes full width */
+.leaflet-container {
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 0; /* Prevent z-index issues with other elements */
+}
+
+/* Styling for the map marker popup */
+.leaflet-popup-content-wrapper {
+  border-radius: 6px;
+  padding: 5px;
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.5;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Styling for map controls */
+.leaflet-control-zoom {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background-color: #fff;
+  color: #333;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #f4f4f4;
+}
+
+/* Attribution styling */
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 5px;
+}
+
+/* Styles for address search input when using geosearch */
+.leaflet-control-geosearch form input {
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%;
+  font-size: 14px;
+}
+
+/* Results styling for geosearch */
+.leaflet-control-geosearch form .results {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  overflow: hidden;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.leaflet-control-geosearch form .results > div {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.leaflet-control-geosearch form .results > div:hover {
+  background-color: #f4f4f4;
+}

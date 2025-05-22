@@ -16,8 +16,21 @@ Built with **React**, **PrimeReact**, and **Vite**, this frontend interacts with
 - **Socket.IO / Firebase** – Realtime data
 - **Axios** – HTTP client
 - **React Router** – Navigation & routing
-- **Google Maps API** – Geolocation & map views
+- **OpenStreetMap/Leaflet** – Geolocation & map views for donor location selection
 - **Twilio / SendGrid** – Communication (via backend)
+
+---
+
+## 📍 Map Integration
+
+The app integrates OpenStreetMap with Leaflet for donor location selection with features like:
+- Interactive map selection
+- Current location detection
+- Address geocoding
+- Reverse geocoding to auto-fill address fields
+- Draggable markers for precise location selection
+
+See [OPENSTREETMAP_INTEGRATION.md](OPENSTREETMAP_INTEGRATION.md) for setup instructions.
 
 ---
 
@@ -57,7 +70,6 @@ Create a `.env` file in the root with your config:
 ```
 VITE_API_URL=http://localhost:3000/api
 VITE_FIREBASE_API_KEY=your_key_here
-VITE_GOOGLE_MAPS_KEY=your_key_here
 ```
 
 ### 4. Run the dev server

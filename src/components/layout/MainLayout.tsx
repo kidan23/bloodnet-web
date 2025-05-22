@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { ToastProvider } from "./ToastContext";
 import Topbar from "./Topbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
@@ -21,38 +22,40 @@ const MainLayout: React.FC<MainLayoutProps> = ({ isLoggedIn, children }) => {
   if (!isLoggedIn) {
     return (
       <div className="h-screen flex align-items-center justify-content-center surface-ground">
-        <div className="card p-4 shadow-2 border-round w-full lg:w-6 md:w-8">
+        <ToastProvider>
           <Outlet />
-        </div>
+        </ToastProvider>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-column relative">
-      {/* Top Navigation */}
-      <Topbar onMenuToggle={toggleSidebar} />{" "}
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <Sidebar
-          visible={sidebarVisible}
-          onHide={() => setSidebarVisible(false)}
-        />
+    <ToastProvider>
+      <div className="min-h-screen flex flex-column relative">
+        {/* Top Navigation */}
+        <Topbar onMenuToggle={toggleSidebar} />{" "}
+        <div className="flex flex-1">
+          {/* Sidebar */}
+          <Sidebar
+            visible={sidebarVisible}
+            onHide={() => setSidebarVisible(false)}
+          />
 
-        {/* Main Content Area */}
-        <div
-          className={`flex-1 p-4 transition-all transition-duration-300 ${
-            sidebarVisible ? "lg:ml-280px" : ""
-          }`}
-        >
-          <div className="surface-section border-round p-4">
-            <Outlet />
+          {/* Main Content Area */}
+          <div
+            className={`flex-1 p-4 transition-all transition-duration-300 ${
+              sidebarVisible ? "lg:ml-280px" : ""
+            }`}
+          >
+            <div className="surface-section border-round p-4">
+              <Outlet />
+            </div>
           </div>
         </div>
+        {/* Footer */}
+        <Footer />
       </div>
-      {/* Footer */}
-      <Footer />
-    </div>
+    </ToastProvider>
   );
 };
 
