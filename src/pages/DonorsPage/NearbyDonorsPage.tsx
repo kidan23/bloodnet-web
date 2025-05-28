@@ -14,6 +14,7 @@ import { InputNumber } from 'primereact/inputNumber';
 // Import blood bank and medical institution APIs and types
 import { useBloodBanks } from '../../state/bloodBanks';
 import { useMedicalInstitutions } from '../MedicalInstitutionsPage/api';
+import { extractErrorForToast } from "../../utils/errorHandling";
 import type { BloodBank } from '../BloodBanksPage/types';
 import type { MedicalInstitution } from '../MedicalInstitutionsPage/types';
 
@@ -501,12 +502,14 @@ const NearbyDonorsPage: React.FC = () => {
                   <div className="text-center p-4">
                     <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
                     <p className="mt-2">Searching for nearby donors...</p>
-                  </div>
-                ) : error ? (
+                  </div>                ) : error ? (
                   <div className="text-center p-4">
                     <i className="pi pi-exclamation-triangle text-orange-500" style={{ fontSize: '2rem' }}></i>
-                    <p className="mt-2 text-600">Error loading nearby donors. Please try again.</p>
-                  </div>                ) : donors.length > 0 ? (                  <div>
+                    <p className="mt-2 text-600">{(() => {
+                      const { summary, detail } = extractErrorForToast(error);
+                      return `${summary}: ${detail}`;
+                    })()}</p>
+                  </div>) : donors.length > 0 ? (                  <div>
                     <p className="text-600 mb-3">
                       Found {donors.length} donors within {radius}km
                       {locationSource === 'bloodbank' && selectedBloodBank ? ` from ${selectedBloodBank.name}` : 

@@ -5,6 +5,7 @@ import { Icon } from 'leaflet';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Card } from 'primereact/card';
+import { extractErrorForToast } from "../../utils/errorHandling";
 import 'leaflet/dist/leaflet.css';
 import '../../styles/leaflet-custom.css';
 
@@ -120,9 +121,9 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ coordinates, onChange, 
         setPosition([parseFloat(result.lon), parseFloat(result.lat)]);
       } else {
         setSearchError('No results found for the address');
-      }
-    } catch (error) {
-      setSearchError(`Error searching for address: ${(error as Error).message}`);
+      }    } catch (error) {
+      const { summary, detail } = extractErrorForToast(error);
+      setSearchError(`${summary}: ${detail}`);
     }
   };
 

@@ -11,6 +11,7 @@ import { DonationStatus } from './constants';
 import { useState } from 'react';
 import { Toast } from 'primereact/toast';
 import { useRef } from 'react';
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 const DonationDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,13 +59,13 @@ const DonationDetailsPage: React.FC = () => {
         detail: 'Donation record deleted successfully', 
         life: 3000 
       });
-      navigate('/donations');
-    } catch (error) {
+      navigate('/donations');    } catch (error) {
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({ 
         severity: 'error', 
-        summary: 'Error', 
-        detail: 'Failed to delete donation record', 
-        life: 3000 
+        summary,
+        detail,
+        life: 5000
       });
     }
     setDeleteDialogVisible(false);

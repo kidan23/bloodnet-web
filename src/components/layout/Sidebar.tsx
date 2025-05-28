@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Ripple } from "primereact/ripple";
 import { Button } from "primereact/button";
@@ -74,13 +74,27 @@ const renderIcon = (
 const Sidebar: React.FC<SidebarProps> = ({
   collapsed = false,
   onToggle = () => {},
-}) => {
-  const location = useLocation();
+}) => {  const location = useLocation();
   const { userRole, user } = useAuth();
-  const [hoveredSubmenu, setHoveredSubmenu] = useState<string | null>(null);
-  const [overlayTimeouts, setOverlayTimeouts] = useState<{
-    [key: string]: number | undefined;
-  }>({});
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Close overlay when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        closeActiveSubmenu();
+      }
+    };
+
+    if (activeSubmenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [activeSubmenu]);
 
   // Create refs for submenu items
   const donationsMenuRef = useRef(null);
@@ -183,62 +197,41 @@ const Sidebar: React.FC<SidebarProps> = ({
         return adminOverlayRef;
       default:
         return null;
-    }
-  }; // Helper function to handle submenu hover when collapsed
-  const handleSubmenuHover = (event: React.MouseEvent, item: MenuItem) => {
-    if (collapsed && item.items) {
-      // Clear any existing timeout for this item
-      if (overlayTimeouts[item.label]) {
-        clearTimeout(overlayTimeouts[item.label]);
-        setOverlayTimeouts((prev) => ({ ...prev, [item.label]: undefined }));
-      }
+    }  }; 
 
+  // Helper function to handle submenu click when collapsed
+  const handleSubmenuClick = (event: React.MouseEvent, item: MenuItem) => {
+    if (collapsed && item.items) {
       const overlayRef = getOverlayRef(item.label);
       if (overlayRef?.current) {
-        setHoveredSubmenu(item.label);
-        overlayRef.current.show(event, event.currentTarget);
+        if (activeSubmenu === item.label) {
+          // If this submenu is already open, close it
+          overlayRef.current.hide();
+          setActiveSubmenu(null);
+        } else {
+          // Close any other open submenu first
+          if (activeSubmenu) {
+            const prevOverlayRef = getOverlayRef(activeSubmenu);
+            prevOverlayRef?.current?.hide();
+          }
+          // Open this submenu
+          setActiveSubmenu(item.label);
+          overlayRef.current.show(event, event.currentTarget);
+        }
       }
     }
   };
 
-  // Helper function to handle submenu leave
-  const handleSubmenuLeave = (item: MenuItem) => {
-    if (collapsed && item.items) {
-      // Set a timeout to hide the overlay
-      const timeout = setTimeout(() => {
-        if (hoveredSubmenu === item.label) {
-          const overlayRef = getOverlayRef(item.label);
-          overlayRef?.current?.hide();
-          setHoveredSubmenu(null);
-        }
-      }, 300); // Reasonable delay to move to overlay
-
-      setOverlayTimeouts((prev) => ({ ...prev, [item.label]: timeout }));
-    }
-  };
-
-  // Helper function to handle overlay mouse enter
-  const handleOverlayEnter = (item: MenuItem) => {
-    // Clear timeout when entering overlay
-    if (overlayTimeouts[item.label]) {
-      clearTimeout(overlayTimeouts[item.label]);
-      setOverlayTimeouts((prev) => ({ ...prev, [item.label]: undefined }));
-    }
-    setHoveredSubmenu(item.label);
-  };
-
-  // Helper function to handle overlay mouse leave
-  const handleOverlayLeave = (item: MenuItem) => {
-    const timeout = setTimeout(() => {
-      const overlayRef = getOverlayRef(item.label);
+  // Helper function to close active submenu
+  const closeActiveSubmenu = () => {
+    if (activeSubmenu) {
+      const overlayRef = getOverlayRef(activeSubmenu);
       overlayRef?.current?.hide();
-      setHoveredSubmenu(null);
-    }, 100); // Short delay for overlay leave
-
-    setOverlayTimeouts((prev) => ({ ...prev, [item.label]: timeout }));
-  };
-  return (
+      setActiveSubmenu(null);
+    }
+  };  return (
     <div
+      ref={sidebarRef}
       className={`flex-shrink-0 select-none transition-all transition-duration-300 relative ${
         collapsed ? "w-20 p-2" : "w-280px p-3"
       }`}
@@ -338,23 +331,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                 ) : item.items && collapsed ? (
                   // Collapsed submenu with overlay
                   <>
-                    {" "}
-                    <div
+                    {" "}                    <div
                       className={`p-ripple flex align-items-center cursor-pointer border-round transition-duration-150 transition-colors w-full justify-content-center p-3 text-xl text-700 hover:surface-100`}
                       title={item.label}
-                      onMouseEnter={(e) => handleSubmenuHover(e, item)}
-                      onMouseLeave={() => handleSubmenuLeave(item)}
+                      onClick={(e) => handleSubmenuClick(e, item)}
                       style={{ minHeight: "3rem" }} // Ensure consistent hover area
                     >
                       {renderIcon(item.icon, "", 24)}
                       <Ripple />
-                    </div>{" "}
-                    <OverlayPanel
+                    </div>{" "}                    <OverlayPanel
                       ref={getOverlayRef(item.label)}
                       className="w-auto"
                       style={{ minWidth: "200px" }}
-                      onMouseEnter={() => handleOverlayEnter(item)}
-                      onMouseLeave={() => handleOverlayLeave(item)}
                     >
                       <div className="p-2">
                         <div className="font-semibold text-primary mb-2 px-2">
@@ -368,11 +356,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                               location.pathname === child.to
                                 ? "bg-primary text-white"
                                 : "text-700 hover:surface-100"
-                            }`}
-                            onClick={() => {
+                            }`}                            onClick={() => {
                               const overlayRef = getOverlayRef(item.label);
                               overlayRef?.current?.hide();
-                              setHoveredSubmenu(null);
+                              setActiveSubmenu(null);
                             }}
                           >
                             {renderIcon(child.icon, "mr-2")}
@@ -412,22 +399,22 @@ const Sidebar: React.FC<SidebarProps> = ({
           </ul>
         </div>{" "}
         {!collapsed && (
-            <div className="mt-auto">
+          <div className="mt-auto">
             <hr className="mb-3 mx-3 border-top-1 border-none surface-border" />
             <a className="m-3 flex align-items-center cursor-pointer p-3 gap-2 border-round text-700 hover:surface-100 transition-duration-150 transition-colors p-ripple">
               <Avatar
-              label={user?.email?.charAt(0).toUpperCase()}
-              shape="circle"
-              style={{ backgroundColor: "#3B82F6", color: "white" }}
+                label={user?.email?.charAt(0).toUpperCase()}
+                shape="circle"
+                style={{ backgroundColor: "#3B82F6", color: "white" }}
               />
               <span className="font-bold" title={user?.email || "User"}>
-              {(user?.email && user.email.length > 15)
-                ? user.email.slice(0, 14) + "..."
-                : user?.email || "User"}
+                {user?.email && user.email.length > 15
+                  ? user.email.slice(0, 14) + "..."
+                  : user?.email || "User"}
               </span>
               <Ripple />
             </a>
-            </div>
+          </div>
         )}{" "}
         {collapsed && (
           <div className="mt-auto">

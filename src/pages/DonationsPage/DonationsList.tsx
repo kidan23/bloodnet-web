@@ -9,6 +9,7 @@ import { useDonations } from '../../state/donations';
 import DonationCard from './DonationCard';
 import type { DonationFilters } from './types.ts';
 import { donationStatusOptions } from './constants';
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 interface DonationsListProps {
   donorId?: string;
@@ -35,9 +36,8 @@ const DonationsList: React.FC<DonationsListProps> = ({
     startDate: undefined,
     endDate: undefined,
   });
-
   // Fetch donations with pagination and filters
-  const { data: donationsData, isLoading, isError } = useDonations({
+  const { data: donationsData, isLoading, isError, error } = useDonations({
     donorId,
     bloodBankId,
     page,
@@ -74,12 +74,14 @@ const DonationsList: React.FC<DonationsListProps> = ({
       </div>
     );
   }
-
   if (isError) {
     return (
       <div className="p-message p-message-error mt-3">
         <i className="pi pi-times-circle p-message-icon"></i>
-        <span className="p-message-text">Failed to load donations. Please try again later.</span>
+        <span className="p-message-text">{(() => {
+          const { summary, detail } = extractErrorForToast(error);
+          return `${summary}: ${detail}`;
+        })()}</span>
       </div>
     );
   }

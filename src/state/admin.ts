@@ -6,9 +6,21 @@ export interface PendingApplication {
   _id: string;
   email: string;
   role: string;
-  approvalStatus: ApprovalStatus;
+  status: ApprovalStatus;
   createdAt: string;
   profileData: any;
+  rejectionReason?: string;
+}
+
+export interface ApplicationsResponse {
+  results: PendingApplication[];
+  totalResults: number;
+  page?: number;
+  limit?: number;
+}
+
+export interface ReviewApplicationDto {
+  status: 'approved' | 'rejected';
   rejectionReason?: string;
 }
 
@@ -17,25 +29,16 @@ export function useGetApplications(status?: ApprovalStatus) {
     queryKey: ['admin-applications', status],
     queryFn: async () => {
       const params = status ? { status } : {};
-      const { data } = await api.get('/admin/applications', { params });
-      return data as PendingApplication[];
+      const { data } = await api.get('/applications', { params });
+      return data as ApplicationsResponse;
     }
   });
 }
 
-export function useApproveApplication() {
+export function useReviewApplication() {
   return useMutation({
-    mutationFn: async (applicationId: string) => {
-      const { data } = await api.post(`/admin/applications/${applicationId}/approve`);
-      return data;
-    }
-  });
-}
-
-export function useRejectApplication() {
-  return useMutation({
-    mutationFn: async ({ applicationId, reason }: { applicationId: string; reason: string }) => {
-      const { data } = await api.post(`/admin/applications/${applicationId}/reject`, { reason });
+    mutationFn: async ({ applicationId, review }: { applicationId: string; review: ReviewApplicationDto }) => {
+      const { data } = await api.patch(`/applications/${applicationId}/review`, review);
       return data;
     }
   });

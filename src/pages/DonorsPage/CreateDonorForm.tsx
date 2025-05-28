@@ -14,6 +14,7 @@ import {
   type AddressDetails,
 } from "../../components/map";
 import type { CreateDonorPayload } from "./types";
+import { extractErrorForToast } from "../../utils/errorHandling";
 import type { BloodType } from "./types";
 
 import { BloodTypeEnum } from "./types";
@@ -206,15 +207,14 @@ const CreateDonorForm: React.FC<CreateDonorFormProps> = ({
           life: 3000,
         });
         onSuccess();
-      },
-      onError: (error) => {
+      },      onError: (error) => {
         console.error("Error creating donor:", error);
+        const { summary, detail } = extractErrorForToast(error);
         toast.current?.show({
           severity: "error",
-          summary: "Error",
-          detail:
-            "Failed to create donor. Please check your information and try again.",
-          life: 4000,
+          summary,
+          detail,
+          life: 5000,
         });
       },
     });

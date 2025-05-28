@@ -1,38 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputNumber';
 import { Toast } from 'primereact/toast';
 import { Card } from 'primereact/card';
 import { useNearbyMedicalInstitutions } from './api';
 import MedicalInstitutionCard from './MedicalInstitutionCard';
+import DisplayMap from '../../components/map/DisplayMap';
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import L from 'leaflet';
-
-// Make sure Leaflet CSS is imported somewhere in your app
-// import 'leaflet/dist/leaflet.css';
-
-interface MapCenterProps {
-  center: [number, number];
-}
-
-const MapCenter: React.FC<MapCenterProps> = ({ center }) => {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
-  return null;
-};
+import type { MapPoint } from '../../components/map/DisplayMap';
+import type { MedicalInstitution } from './types';
 
 const NearbyMedicalInstitutionsSearch: React.FC = () => {
   const [location, setLocation] = useState<[number, number]>([0, 0]);
   const [radius, setRadius] = useState<number>(10); // Default radius in km
   const [searchInitiated, setSearchInitiated] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [selectedInstitution, setSelectedInstitution] = useState<MedicalInstitution | null>(null);
   const toast = useRef<Toast>(null);
   const navigate = useNavigate();
-
   const { data, isLoading, error } = useNearbyMedicalInstitutions(
     location[0], // longitude
     location[1], // latitude
@@ -42,6 +28,20 @@ const NearbyMedicalInstitutionsSearch: React.FC = () => {
       isActive: true 
     }
   );
+
+  // Convert medical institutions to map points
+  const mapPoints: MapPoint[] = useMemo(() => {
+    if (!data?.results) return [];
+    return data.results.map((institution: MedicalInstitution) => ({
+      id: institution._id,
+      lat: institution.coordinates[1], // latitude
+      lng: institution.coordinates[0], // longitude
+      title: institution.name,
+      description: `${institution.type} • ${institution.address}`,
+      type: 'hospital' as const,
+      data: institution
+    }));
+  }, [data?.results]);
 
   useEffect(() => {
     // Try to get user's current location
@@ -80,31 +80,36 @@ const NearbyMedicalInstitutionsSearch: React.FC = () => {
         life: 3000,
       });
       return;
-    }
-    setSearchInitiated(true);
+    }    setSearchInitiated(true);
   };
-
-  // Create custom marker icon
-  const markerIcon = new L.Icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
-
   return (
-    <div className="p-4">
-      <Toast ref={toast} />
-
-      <div className="flex justify-content-between align-items-center mb-4">
+    <div className="p-4" style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <Toast ref={toast} /><div className="flex justify-content-between align-items-center mb-4">
         <h1 className="m-0">Nearby Medical Institutions</h1>
-        <Button 
-          label="Back to List" 
-          icon="pi pi-arrow-left" 
-          className="p-button-outlined" 
-          onClick={() => navigate('/medical-institutions')} 
-        />
+        <div className="flex gap-2">
+          <div className="flex gap-1">
+            <Button 
+              label="List" 
+              icon="pi pi-list" 
+              className={viewMode === 'list' ? 'p-button-raised' : 'p-button-outlined'} 
+              size="small"
+              onClick={() => setViewMode('list')} 
+            />
+            <Button 
+              label="Map" 
+              icon="pi pi-map" 
+              className={viewMode === 'map' ? 'p-button-raised' : 'p-button-outlined'} 
+              size="small"
+              onClick={() => setViewMode('map')} 
+            />
+          </div>
+          <Button 
+            label="Back to List" 
+            icon="pi pi-arrow-left" 
+            className="p-button-outlined" 
+            onClick={() => navigate('/medical-institutions')} 
+          />
+        </div>
       </div>
 
       <Card className="mb-4">
@@ -166,87 +171,113 @@ const NearbyMedicalInstitutionsSearch: React.FC = () => {
             />
           </div>
         </div>
-      </Card>
-
-      {searchInitiated && (
+      </Card>      {searchInitiated && (
         <>
-          <div className="grid">
-            <div className="col-12 lg:col-8">
-              {location[0] !== 0 && location[1] !== 0 && (
-                <div style={{ height: '500px', width: '100%' }}>
-                  <MapContainer
-                    center={[location[1], location[0]]} // Leaflet uses [lat, lng]
-                    zoom={10}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <MapCenter center={[location[1], location[0]]} />
-                    
-                    {/* User's location marker */}
-                    <Marker position={[location[1], location[0]]} icon={markerIcon}>
-                      <Popup>Your location</Popup>
-                    </Marker>
-                      {/* Institution markers */}
-                    {data?.results.map((institution) => (
-                      <Marker 
-                        key={institution._id} 
-                        position={[institution.coordinates[1], institution.coordinates[0]]} 
-                        icon={markerIcon}
-                      >
-                        <Popup>
-                          <div>
-                            <h4>{institution.name}</h4>
-                            <p>{institution.type}</p>
-                            <p>{institution.address}</p>
+          {isLoading ? (
+            <div className="flex justify-content-center">
+              <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
+            </div>
+          ) : error ? (
+            <div className="p-message p-message-error">
+              <div className="p-message-text">Error loading results</div>
+            </div>
+          ) : (
+            viewMode === 'map' ? (
+              <div className="grid">
+                <div className="col-12 lg:col-8">
+                  <Card>
+                    <DisplayMap
+                      points={mapPoints}
+                      height="500px"
+                      showUserLocation={true}
+                      userLocation={location[0] !== 0 && location[1] !== 0 ? {
+                        lat: location[1],
+                        lng: location[0]
+                      } : undefined}
+                      onPointClick={(point) => {
+                        const institution = point.data as MedicalInstitution;
+                        setSelectedInstitution(institution);
+                      }}
+                      selectedPointId={selectedInstitution?._id}
+                      renderPopup={(point) => {
+                        const institution = point.data as MedicalInstitution;
+                        return (
+                          <div className="p-3">
+                            <h4 className="font-semibold text-lg mb-2">{institution.name}</h4>
+                            <p className="text-sm text-gray-600 mb-2">{institution.type}</p>
+                            <p className="text-sm text-gray-600 mb-2">{institution.address}</p>
+                            {institution.phoneNumber && (
+                              <p className="text-sm mb-2">📞 {institution.phoneNumber}</p>
+                            )}
+                            {institution.services && institution.services.length > 0 && (
+                              <div className="mb-2">
+                                <span className="text-sm font-medium">Services: </span>
+                                <span className="text-sm">{institution.services.join(', ')}</span>
+                              </div>
+                            )}
+                            {institution.operatingHours && institution.operatingHours.length > 0 && (
+                              <p className="text-xs text-gray-500">Hours: {institution.operatingHours.join(', ')}</p>
+                            )}
                             <Button 
                               label="View Details" 
                               size="small" 
+                              className="mt-2"
                               onClick={() => navigate(`/medical-institutions/${institution._id}`)}
                             />
                           </div>
-                        </Popup>
-                      </Marker>
-                    ))}
-                  </MapContainer>
+                        );
+                      }}
+                    />
+                  </Card>
                 </div>
-              )}
-            </div>
-            
-            <div className="col-12 lg:col-4">
-              <div className="sticky" style={{ top: '20px' }}>
-                <h3>Search Results</h3>
-                {isLoading ? (
-                  <div className="flex justify-content-center">
-                    <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
+                <div className="col-12 lg:col-4">
+                  <div className="sticky" style={{ top: '20px' }}>
+                    <h3>Search Results ({data?.results.length || 0})</h3>
+                    <div className="results-container" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                      {data?.results.length === 0 ? (
+                        <div className="text-center p-4">
+                          <p>No medical institutions found in this area</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-column gap-3">
+                          {data?.results.map((institution) => (
+                            <div 
+                              key={institution._id}
+                              className={`cursor-pointer ${selectedInstitution?._id === institution._id ? 'ring-2 ring-blue-500' : ''}`}
+                              onClick={() => setSelectedInstitution(institution)}
+                            >
+                              <MedicalInstitutionCard 
+                                institution={institution}
+                                showActions={false}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                ) : error ? (
-                  <div className="p-message p-message-error">
-                    <div className="p-message-text">Error loading results</div>
+                </div>
+              </div>
+            ) : (
+              <div className="results-container" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                {data?.results.length === 0 ? (
+                  <div className="text-center p-4">
+                    <p>No medical institutions found in this area</p>
                   </div>
-                ) : (                  <div className="results-container" style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                    {data?.results.length === 0 ? (
-                      <div className="text-center p-4">
-                        <p>No medical institutions found in this area</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-column gap-3">
-                        {data?.results.map((institution) => (
-                          <MedicalInstitutionCard 
-                            key={institution._id} 
-                            institution={institution}
-                            showActions={false}
-                          />
-                        ))}
-                      </div>
-                    )}
+                ) : (
+                  <div className="flex flex-column gap-3">
+                    {data?.results.map((institution) => (
+                      <MedicalInstitutionCard 
+                        key={institution._id} 
+                        institution={institution}
+                        showActions={false}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+            )
+          )}
         </>
       )}
     </div>

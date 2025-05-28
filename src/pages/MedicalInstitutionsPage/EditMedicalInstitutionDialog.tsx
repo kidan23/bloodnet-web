@@ -12,6 +12,7 @@ import { useUpdateMedicalInstitution, useMedicalInstitution } from "./api";
 import type { UpdateMedicalInstitutionDto } from "./types";
 import { useRef } from "react";
 import CountrySelect from "../../components/CountrySelect";
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 interface EditMedicalInstitutionDialogProps {
   visible: boolean;
@@ -106,15 +107,15 @@ const EditMedicalInstitutionDialog: React.FC<
         detail: "Medical institution updated successfully",
         life: 3000,
       });
-      onHide();
-      if (onSuccess) onSuccess();
+      onHide();      if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error updating medical institution:", error);
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
-        summary: "Error",
-        detail: "Failed to update medical institution",
-        life: 3000,
+        summary,
+        detail,
+        life: 5000,
       });
     }
   };

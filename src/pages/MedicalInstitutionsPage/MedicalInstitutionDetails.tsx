@@ -10,6 +10,7 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import { useMedicalInstitution, useDeleteMedicalInstitution } from './api';
 import EditMedicalInstitutionDialog from './EditMedicalInstitutionDialog';
 import { useRef } from 'react';
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 const MedicalInstitutionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,14 +40,14 @@ const MedicalInstitutionDetails: React.FC = () => {
             detail: 'Medical institution deleted successfully',
             life: 3000,
           });
-          navigate('/medical-institutions');
-        } catch (error) {
+          navigate('/medical-institutions');        } catch (error) {
           console.error('Error deleting medical institution:', error);
+          const { summary, detail } = extractErrorForToast(error);
           toast.current?.show({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to delete medical institution',
-            life: 3000,
+            summary,
+            detail,
+            life: 5000,
           });
         }
       },

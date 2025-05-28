@@ -6,6 +6,7 @@ import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -123,15 +124,15 @@ const EditBloodBankForm: React.FC = () => {
     if (!validateForm()) {
       return;
     }
-    
-    try {
+      try {
       await updateMutation.mutateAsync({ id, data: formData });
       navigate(`/blood-banks/${id}`, { 
         state: { message: 'Blood bank updated successfully' }
       });
     } catch (err) {
       console.error('Failed to update blood bank:', err);
-      setErrors({ form: 'Failed to update blood bank. Please try again.' });
+      const { summary, detail } = extractErrorForToast(err);
+      setErrors({ form: `${summary}: ${detail}` });
     }
   };
 

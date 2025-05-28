@@ -10,6 +10,7 @@ import {
   type AddressDetails,
 } from "../../components/map";
 import type { CreateBloodBankDto, GeoPoint } from "./types";
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -119,15 +120,15 @@ const CreateBloodBankForm: React.FC<CreateBloodBankFormProps> = ({
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-  const handleSubmit = async (e: React.FormEvent) => {
+  };  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
     try {
       await createMutation.mutateAsync(formData as CreateBloodBankDto);
       onHide();
     } catch (err) {
-      setErrors({ form: "Failed to create blood bank. Please try again." });
+      const { summary, detail } = extractErrorForToast(err);
+      setErrors({ form: `${summary}: ${detail}` });
     }
   };
   return (

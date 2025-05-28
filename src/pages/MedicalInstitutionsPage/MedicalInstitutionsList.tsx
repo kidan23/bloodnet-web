@@ -10,6 +10,7 @@ import MedicalInstitutionCard from './MedicalInstitutionCard';
 import CreateMedicalInstitutionDialog from './CreateMedicalInstitutionDialog';
 import EditMedicalInstitutionDialog from './EditMedicalInstitutionDialog';
 import { useRef } from 'react';
+import { extractErrorForToast } from "../../utils/errorHandling";
 import { useNavigate } from 'react-router-dom';
 
 const sortOptions = [
@@ -92,14 +93,14 @@ const MedicalInstitutionsList: React.FC = () => {
             detail: 'Medical institution deleted successfully',
             life: 3000,
           });
-          refetch();
-        } catch (error) {
+          refetch();        } catch (error) {
           console.error('Error deleting medical institution:', error);
+          const { summary, detail } = extractErrorForToast(error);
           toast.current?.show({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to delete medical institution',
-            life: 3000,
+            summary,
+            detail,
+            life: 5000,
           });
         }
       },
@@ -161,10 +162,12 @@ const MedicalInstitutionsList: React.FC = () => {
       </div>      {isLoading ? (
         <div className="flex justify-content-center">
           <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
-        </div>
-      ) : error ? (
+        </div>      ) : error ? (
         <div className="p-message p-message-error mt-3">
-          <div className="p-message-text">Error loading medical institutions. Please try again later.</div>
+          <div className="p-message-text">{(() => {
+            const { summary, detail } = extractErrorForToast(error);
+            return `${summary}: ${detail}`;
+          })()}</div>
         </div>
       ) : (
         <>

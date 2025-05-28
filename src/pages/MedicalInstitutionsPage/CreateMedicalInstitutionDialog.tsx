@@ -14,6 +14,7 @@ import {
   type LatLng,
   type AddressDetails,
 } from "../../components/map";
+import { extractErrorForToast } from "../../utils/errorHandling";
 import CountrySelect from "../../components/CountrySelect";
 import type { CreateMedicalInstitutionDto } from "./types";
 import { useRef } from "react";
@@ -162,16 +163,16 @@ const CreateMedicalInstitutionDialog: React.FC<
         summary: "Success",
         detail: "Medical institution created successfully",
         life: 3000,
-      });
-      onHide();
+      });      onHide();
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error creating medical institution:", error);
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
-        summary: "Error",
-        detail: "Failed to create medical institution",
-        life: 3000,
+        summary,
+        detail,
+        life: 5000,
       });
     }
   };

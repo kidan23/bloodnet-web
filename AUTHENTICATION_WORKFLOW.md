@@ -95,13 +95,13 @@ BloodNet implements a sophisticated three-tier authentication and registration s
 ### API Endpoints Required
 ```
 POST /auth/signup - Donor registration
-POST /auth/apply - Organization applications
+POST /applications - Organization applications
 POST /auth/login - User login
 POST /auth/check-token - Token validation
 GET /auth/profile-status - Profile completion check
-GET /admin/applications - List applications
-POST /admin/applications/:id/approve - Approve application
-POST /admin/applications/:id/reject - Reject application
+GET /applications - List applications (admin access)
+POST /applications/:id/approve - Approve application (admin access)
+POST /applications/:id/reject - Reject application (admin access)
 ```
 
 ## User Experience

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   useBloodBank, 
@@ -7,10 +7,13 @@ import {
 } from '../../state/bloodBanks';
 import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
+import { Toast } from 'primereact/toast';
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 const BloodBankDetails: React.FC = () => {
   const { id = '' } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const toast = useRef<Toast>(null);
   
   const { 
     data: bloodBank, 
@@ -38,7 +41,6 @@ const BloodBankDetails: React.FC = () => {
       </div>
     );
   }
-
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this blood bank?')) {
       try {
@@ -48,6 +50,13 @@ const BloodBankDetails: React.FC = () => {
         });
       } catch (err) {
         console.error('Failed to delete blood bank:', err);
+        const { summary, detail } = extractErrorForToast(err);
+        toast.current?.show({
+          severity: 'error',
+          summary,
+          detail,
+          life: 5000
+        });
       }
     }
   };
@@ -57,11 +66,18 @@ const BloodBankDetails: React.FC = () => {
       await toggleStatusMutation.mutateAsync(id);
     } catch (err) {
       console.error('Failed to toggle blood bank status:', err);
+      const { summary, detail } = extractErrorForToast(err);
+      toast.current?.show({
+        severity: 'error',
+        summary,
+        detail,
+        life: 5000
+      });
     }
   };
-
   return (
     <div className="flex flex-column gap-4" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <Toast ref={toast} />
       <div className="mb-3">
         <Link to="/blood-banks" className="text-primary underline-hover">
           &larr; Back to Blood Banks

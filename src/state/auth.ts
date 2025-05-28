@@ -76,7 +76,7 @@ export function useSignup() {
 export function useApply() {
   return useMutation<{ message: string }, Error, ApplyPayload>({
     mutationFn: async (payload: ApplyPayload) => {
-      const { data } = await api.post('/auth/apply', payload);
+      const { data } = await api.post('/applications', payload);
       return data;
     },
   });

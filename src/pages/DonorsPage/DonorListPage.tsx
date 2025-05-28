@@ -9,6 +9,7 @@ import { Paginator } from "primereact/paginator";
 import CreateDonorForm from "./CreateDonorForm";
 import DonorCard from "./DonorCard";
 import type { Donor } from "./types";
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 const DonorsPage: React.FC = () => {  // Pagination state
   const [page, setPage] = useState(1);
@@ -69,11 +70,13 @@ const DonorsPage: React.FC = () => {  // Pagination state
           <div className="flex justify-content-center">
             <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
             <span className="ml-2">Loading donors...</span>
-          </div>
-        ) : error ? (
+          </div>        ) : error ? (
           <div className="p-message p-message-error">
             <i className="pi pi-times-circle p-message-icon"></i>
-            <span className="p-message-text">Failed to fetch donors. Please try again.</span>
+            <span className="p-message-text">{(() => {
+              const { summary, detail } = extractErrorForToast(error);
+              return `${summary}: ${detail}`;
+            })()}</span>
           </div>
         ) : (
           <>

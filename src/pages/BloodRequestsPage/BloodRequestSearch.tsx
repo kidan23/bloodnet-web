@@ -70,7 +70,7 @@ const BloodRequestSearch: React.FC<BloodRequestSearchProps> = ({ onSearch, onCle
 
   return (
     <Card className="mb-3">
-      <div className="flex align-items-center justify-content-between mb-3">
+      <div className="flex align-items-center justify-content-between">
         <h2 className="m-0 text-xl">Search Blood Requests</h2>
         <Button 
           icon={expanded ? "pi pi-chevron-up" : "pi pi-chevron-down"} 

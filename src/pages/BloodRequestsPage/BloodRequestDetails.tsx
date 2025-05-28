@@ -7,6 +7,7 @@ import { Tag } from 'primereact/tag';
 import { Dropdown } from 'primereact/dropdown';
 import { useBloodRequest, useUpdateBloodRequestStatus, useDeleteBloodRequest } from '../../state/bloodRequests';
 import { RequestStatus, RequestPriority } from './types';
+import { extractErrorForToast } from "../../utils/errorHandling";
 import { formatDistanceToNow } from 'date-fns';
 import { useGlobalToast } from '../../components/layout/ToastContext';
 import { confirmDialog } from 'primereact/confirmdialog';
@@ -78,13 +79,13 @@ const BloodRequestDetails: React.FC = () => {
         summary: 'Status Updated',
         detail: `Blood request status updated to ${newStatus}`,
         life: 3000
-      });
-    } catch (err) {
+      });    } catch (err) {
+      const { summary, detail } = extractErrorForToast(err);
       toast.current?.show({
         severity: 'error',
-        summary: 'Update Failed',
-        detail: 'Failed to update blood request status',
-        life: 3000
+        summary,
+        detail,
+        life: 5000
       });
     }
   };
@@ -104,13 +105,13 @@ const BloodRequestDetails: React.FC = () => {
             detail: 'Blood request has been deleted successfully',
             life: 3000
           });
-          navigate('/blood-requests');
-        } catch (err) {
+          navigate('/blood-requests');        } catch (err) {
+          const { summary, detail } = extractErrorForToast(err);
           toast.current?.show({
             severity: 'error',
-            summary: 'Delete Failed',
-            detail: 'Failed to delete blood request',
-            life: 3000
+            summary,
+            detail,
+            life: 5000
           });
         }
       }

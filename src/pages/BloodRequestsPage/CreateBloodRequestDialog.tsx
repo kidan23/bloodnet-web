@@ -9,6 +9,7 @@ import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Checkbox } from "primereact/checkbox";
 import { useCreateBloodRequest } from "../../state/bloodRequests";
+import { extractErrorForToast } from "../../utils/errorHandling";
 import { type CreateBloodRequestDto, RequestPriority, BloodTypeEnum } from "./types";
 import { useGlobalToast } from "../../components/layout/ToastContext";
 import type { CheckboxChangeEvent } from "primereact/checkbox";
@@ -50,16 +51,24 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
     setLoading(true);
     try {
       const { data } = await api.get("/medical-institutions");
-      setInstitutions(data.results || []);
-    } catch (error) {
+      setInstitutions(data.results || []);    } catch (error) {
       console.error("Failed to fetch institutions:", error);
+      
+      const { summary, detail } = extractErrorForToast(error);
+      toast?.show({
+        severity: "error",
+        summary,
+        detail,
+        life: 5000,
+      });
+      
       // Mock data for demo purposes
       setInstitutions([
         { id: "1", name: "City General Hospital" },
         { id: "2", name: "Memorial Medical Center" },
         { id: "3", name: "University Health System" },
       ]);
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -188,15 +197,15 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
         summary: "Success",
         detail: "Blood request created successfully",
         life: 3000,
-      });
-      resetForm();
+      });      resetForm();
       onHide();
     } catch (error) {
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
-        summary: "Error",
-        detail: "Failed to create blood request",
-        life: 3000,
+        summary,
+        detail,
+        life: 5000,
       });
     }
   };

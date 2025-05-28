@@ -13,6 +13,7 @@ import {
   useBloodRequest,
   useUpdateBloodRequest,
 } from "../../state/bloodRequests";
+import { extractErrorForToast } from "../../utils/errorHandling";
 import {
   type UpdateBloodRequestDto,
   RequestPriority,
@@ -73,16 +74,24 @@ const EditBloodRequestForm: React.FC = () => {
     setLoading(true);
     try {
       const { data } = await api.get("/medical-institutions");
-      setInstitutions(data.results || []);
-    } catch (error) {
+      setInstitutions(data.results || []);    } catch (error) {
       console.error("Failed to fetch institutions:", error);
+      
+      const { summary, detail } = extractErrorForToast(error);
+      toast.current?.show({
+        severity: "error",
+        summary,
+        detail,
+        life: 5000,
+      });
+      
       // Mock data for demo purposes
       setInstitutions([
         { id: "1", name: "City General Hospital" },
         { id: "2", name: "Memorial Medical Center" },
         { id: "3", name: "University Health System" },
       ]);
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -196,15 +205,15 @@ const EditBloodRequestForm: React.FC = () => {
         severity: "success",
         summary: "Success",
         detail: "Blood request updated successfully",
-        life: 3000,
-      });
+        life: 3000,      });
       navigate(`/blood-requests/${id}`);
     } catch (error) {
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
-        summary: "Error",
-        detail: "Failed to update blood request",
-        life: 3000,
+        summary,
+        detail,
+        life: 5000,
       });
     }
   };

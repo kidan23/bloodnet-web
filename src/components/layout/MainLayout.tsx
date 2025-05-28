@@ -28,26 +28,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ isLoggedIn }) => {
       </div>
     );
   }
-
   return (
     <ToastProvider>
-      <div className="min-h-screen flex flex-column relative surface-ground">
+      <div className="h-screen flex flex-column surface-ground">
         {/* Top Navigation */}
         <Topbar onMenuToggle={toggleSidebar} />
-        <div className="flex flex-1">
+        
+        {/* Main container with sidebar and content */}
+        <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
           <Sidebar
             collapsed={sidebarCollapsed}
             onToggle={toggleSidebar}
           />
 
-          {/* Main Content Area */}
-          <div className="flex-1 p-4">
-            <div className="surface-section border-round p-4">
+          {/* Main Content Area - Only this part scrolls */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="surface-section border-round">
               <Outlet />
             </div>
           </div>
         </div>
+        
         {/* Footer */}
         <Footer />
       </div>

@@ -38,10 +38,10 @@ const MARKER_COLORS = {
   selected: '#805ad5'       // Purple
 };
 
-// Default center (San Francisco)
+// Default center (Mek'ele, Ethiopia)
 const DEFAULT_CENTER = {
-  lat: 37.7749,
-  lng: -122.4194
+  lat: 13.5169,
+  lng: 39.45389,
 };
 
 const DEFAULT_ZOOM = 13;

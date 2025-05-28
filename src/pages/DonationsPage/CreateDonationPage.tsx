@@ -18,6 +18,7 @@ import {
   DonationStatus,
 } from "./constants";
 import type { CreateDonationDto } from "./types";
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 // Component for creating new donation records
 const CreateDonationPage: React.FC = () => {
@@ -116,16 +117,16 @@ const CreateDonationPage: React.FC = () => {
 
       // Navigate back to donations list after successful creation
       setTimeout(() => {
-        navigate("/donations");
-      }, 1500);
+        navigate("/donations");    }, 1500);
     } catch (error) {
       console.error("Error creating donation:", error);
 
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
-        summary: "Error",
-        detail: "Failed to create donation record. Please try again.",
-        life: 3000,
+        summary,
+        detail,
+        life: 5000,
       });
     }
   };

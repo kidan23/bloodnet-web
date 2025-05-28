@@ -10,6 +10,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import { useGlobalToast } from "../layout/ToastContext";
+import { extractErrorForToast } from "../../utils/errorHandling";
 
 import "leaflet/dist/leaflet.css";
 
@@ -162,13 +163,13 @@ function MapClickHandler({
               detail: "Address fields updated from map location",
               life: 2000,
             });
-          }
-        } catch (error) {
+          }        } catch (error) {
           console.error("Error with reverse geocoding:", error);
+          const { summary, detail } = extractErrorForToast(error);
           toast.current?.show({
             severity: "error",
-            summary: "Geocoding Error",
-            detail: "Could not retrieve address information",
+            summary,
+            detail,
             life: 3000,
           });
         }
@@ -356,9 +357,15 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           };
 
           onAddressChange(addressDetails);
-        }
-      } catch (error) {
+        }      } catch (error) {
         console.error("Error with reverse geocoding:", error);
+        const { summary, detail } = extractErrorForToast(error);
+        toast.current?.show({
+          severity: "error",
+          summary,
+          detail,
+          life: 3000,
+        });
       }
     },
     [enableReverseGeocoding, onAddressChange]
@@ -418,14 +425,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           detail: "Could not find location from address",
           life: 3000,
         });
-      }
-    } catch (error) {
+      }    } catch (error) {
       setGeoLoading(false);
       console.error("Error with geocoding:", error);
+      const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
-        summary: "Geocoding Error",
-        detail: "Error processing your request",
+        summary,
+        detail,
         life: 3000,
       });
     }
