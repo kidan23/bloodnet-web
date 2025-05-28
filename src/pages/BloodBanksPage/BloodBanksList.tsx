@@ -68,7 +68,7 @@ const BloodBanksList: React.FC = () => {
   };
 
   const renderBankCard = (bank: BloodBank) => (
-    <div className="col-12 md-6 lg-4" key={bank.id}>
+    <div className="col-12 md-6 lg-4" key={bank._id}>
       <Card
         title={bank.name}
         subTitle={
@@ -91,11 +91,14 @@ const BloodBanksList: React.FC = () => {
           <div className="mb-2">
             <b>Blood Types:</b> {bank.bloodTypesAvailable.join(", ")}
           </div>
-        )}
-        <div className="mt-3">
-          <Link to={`/blood-banks/${bank.id}`}>
-            <Button label="View Details" className="button-sm mr-2" />
-          </Link>
+        )}        <div className="mt-3">
+          {bank._id ? (
+            <Link to={`/blood-banks/${bank._id}`}>
+              <Button label="View Details" className="button-sm mr-2" />
+            </Link>
+          ) : (
+            <Button label="View Details" className="button-sm mr-2" disabled />
+          )}
         </div>
       </Card>
     </div>

@@ -1,3 +1,6 @@
+/* Import modern scrollbar styles */
+@import './styles/scrollbar.css';
+
 :root {
   --p-text-color: #495057;
   --p-text-color-secondary: #6c757d;

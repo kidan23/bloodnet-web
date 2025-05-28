@@ -10,11 +10,11 @@ interface MainLayoutProps {
   children?: React.ReactNode;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ isLoggedIn, children }) => {
-  const [sidebarVisible, setSidebarVisible] = useState(true);
+const MainLayout: React.FC<MainLayoutProps> = ({ isLoggedIn }) => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible);
+    setSidebarCollapsed(!sidebarCollapsed);
   };
   // If user is not logged in, only show login component
   // Commented out for now
@@ -31,22 +31,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ isLoggedIn, children }) => {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen flex flex-column relative">
+      <div className="min-h-screen flex flex-column relative surface-ground">
         {/* Top Navigation */}
-        <Topbar onMenuToggle={toggleSidebar} />{" "}
+        <Topbar onMenuToggle={toggleSidebar} />
         <div className="flex flex-1">
           {/* Sidebar */}
           <Sidebar
-            visible={sidebarVisible}
-            onHide={() => setSidebarVisible(false)}
+            collapsed={sidebarCollapsed}
+            onToggle={toggleSidebar}
           />
 
           {/* Main Content Area */}
-          <div
-            className={`flex-1 p-4 transition-all transition-duration-300 ${
-              sidebarVisible ? "lg:ml-280px" : ""
-            }`}
-          >
+          <div className="flex-1 p-4">
             <div className="surface-section border-round p-4">
               <Outlet />
             </div>

@@ -4,8 +4,14 @@ export interface GeoPoint {
   coordinates: [number, number]; // [longitude, latitude]
 }
 
+export enum ApprovalStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
 export interface BloodBank {
-  id: string;
+  _id: string;
   name: string;
   address: string;
   location: GeoPoint;
@@ -22,6 +28,12 @@ export interface BloodBank {
   licenseNumber?: string;
   establishedDate?: string;
   isActive?: boolean;
+  user?: string; // Reference to User document
+  approvalStatus?: ApprovalStatus;
+  rejectionReason?: string;
+  appliedAt?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -48,6 +60,11 @@ export interface CreateBloodBankDto {
   bloodTypesAvailable?: string[];
   licenseNumber?: string;
   establishedDate?: string;
+}
+
+export interface BloodBankApplicationDto extends CreateBloodBankDto {
+  userEmail: string;
+  userPassword: string;
 }
 
 export interface UpdateBloodBankDto extends Partial<CreateBloodBankDto> {

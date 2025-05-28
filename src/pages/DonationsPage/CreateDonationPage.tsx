@@ -3,7 +3,7 @@ import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
-import { InputNumber } from "primereact/inputnumber";
+import { InputNumber } from "primereact/inputNumber";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import { Link, useNavigate } from "react-router-dom";

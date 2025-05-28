@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog } from 'primereact/dialog';
-import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Checkbox, type CheckboxChangeEvent } from 'primereact/checkbox';
-import { Chips } from 'primereact/chips';
-import { classNames } from 'primereact/utils';
-import { Toast } from 'primereact/toast';
-import { useCreateMedicalInstitution } from './api';
-import type { CreateMedicalInstitutionDto } from './types';
-import { useRef } from 'react';
+import React, { useState, useEffect } from "react";
+import { Dialog } from "primereact/dialog";
+import { Button } from "primereact/button";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Checkbox, type CheckboxChangeEvent } from "primereact/checkbox";
+import { Chips } from "primereact/chips";
+import { classNames } from "primereact/utils";
+import { Toast } from "primereact/toast";
+import { useCreateMedicalInstitution } from "./api";
+import {
+  InteractiveMap,
+  type LatLng,
+  type AddressDetails,
+} from "../../components/map";
+import CountrySelect from "../../components/CountrySelect";
+import type { CreateMedicalInstitutionDto } from "./types";
+import { useRef } from "react";
 
 interface CreateMedicalInstitutionDialogProps {
   visible: boolean;
@@ -19,85 +25,113 @@ interface CreateMedicalInstitutionDialogProps {
 }
 
 const institutionTypes = [
-  { label: 'Hospital', value: 'Hospital' },
-  { label: 'Blood Bank', value: 'Blood Bank' },
-  { label: 'Clinic', value: 'Clinic' },
-  { label: 'Donation Center', value: 'Donation Center' },
-  { label: 'Research Center', value: 'Research Center' },
-  { label: 'Other', value: 'Other' },
-];
-
-const countries = [
-  { label: 'United States', value: 'United States' },
-  { label: 'Canada', value: 'Canada' },
-  { label: 'United Kingdom', value: 'United Kingdom' },
-  { label: 'Australia', value: 'Australia' },
-  { label: 'New Zealand', value: 'New Zealand' },
-  // Add more countries as needed
+  { label: "Hospital", value: "Hospital" },
+  { label: "Blood Bank", value: "Blood Bank" },
+  { label: "Clinic", value: "Clinic" },
+  { label: "Donation Center", value: "Donation Center" },  { label: "Research Center", value: "Research Center" },
+  { label: "Other", value: "Other" },
 ];
 
 const defaultInstitution: CreateMedicalInstitutionDto = {
-  name: '',
-  registrationNumber: '',
-  type: '',
-  phoneNumber: '',
-  email: '',
-  website: '',
-  address: '',
-  city: '',
-  state: '',
-  postalCode: '',
-  country: '',
-  contactPersonName: '',
-  contactPersonRole: '',
-  contactPersonPhone: '',
-  contactPersonEmail: '',
+  name: "",
+  registrationNumber: "",
+  type: "",
+  phoneNumber: "",
+  email: "",
+  website: "",
+  address: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  country: "",
+  contactPersonName: "",
+  contactPersonRole: "",
+  contactPersonPhone: "",
+  contactPersonEmail: "",
   operatingHours: [],
   services: [],
   coordinates: [0, 0], // [longitude, latitude]
   isActive: true,
 };
 
-const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogProps> = ({
-  visible,
-  onHide,
-  onSuccess,
-}) => {
-  const [institution, setInstitution] = useState<CreateMedicalInstitutionDto>(defaultInstitution);
+const CreateMedicalInstitutionDialog: React.FC<
+  CreateMedicalInstitutionDialogProps
+> = ({ visible, onHide, onSuccess }) => {
+  const [institution, setInstitution] =
+    useState<CreateMedicalInstitutionDto>(defaultInstitution);
   const [submitted, setSubmitted] = useState(false);
   const toast = useRef<Toast>(null);
   const createMutation = useCreateMedicalInstitution();
 
+  // Location state for InteractiveMap
+  const [currentLocation, setCurrentLocation] = useState<LatLng | null>(() => {
+    // Initialize from institution coordinates if they exist and are not default [0, 0]
+    if (
+      institution.coordinates &&
+      institution.coordinates[0] !== 0 &&
+      institution.coordinates[1] !== 0
+    ) {
+      return {
+        lng: institution.coordinates[0],
+        lat: institution.coordinates[1],
+      };
+    }
+    return null;
+  });
   useEffect(() => {
     if (!visible) {
       setInstitution(defaultInstitution);
       setSubmitted(false);
+      setCurrentLocation(null);
     }
   }, [visible]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setInstitution(prev => ({ ...prev, [name]: value }));
+    setInstitution((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle location change from InteractiveMap
+  const handleLocationChange = (location: LatLng) => {
+    setCurrentLocation(location);
+    const coordinates: [number, number] = [location.lng, location.lat];
+    setInstitution((prev) => ({ ...prev, coordinates }));
+  };
+  // Handle address change from reverse geocoding
+  const handleAddressChange = (addressDetails: AddressDetails) => {
+    setInstitution((prev) => ({
+      ...prev,
+      ...(addressDetails.address && { address: addressDetails.address }),
+      ...(addressDetails.city && { city: addressDetails.city }),
+      ...(addressDetails.state && { state: addressDetails.state }),
+      ...(addressDetails.postalCode && {
+        postalCode: addressDetails.postalCode,
+      }),
+      ...(addressDetails.country && { country: addressDetails.country }),
+    }));
+  };
+
+  // Create address object for geocoding
+  const addressForGeocoding = {
+    address: institution.address,
+    city: institution.city,
+    state: institution.state,
+    postalCode: institution.postalCode,
+    country: institution.country,
   };
 
   const handleDropdownChange = (field: string, value: any) => {
-    setInstitution(prev => ({ ...prev, [field]: value }));
+    setInstitution((prev) => ({ ...prev, [field]: value }));
   };
-
   const handleCheckboxChange = (e: CheckboxChangeEvent) => {
     const { name, checked } = e.target;
-    setInstitution(prev => ({ ...prev, [name]: checked }));
+    setInstitution((prev) => ({ ...prev, [name]: checked }));
   };
-
-  const handleCoordinateChange = (index: number, value: string) => {
-    const coordinates: [number, number] = [...institution.coordinates] as [number, number];
-    coordinates[index] = parseFloat(value) || 0;
-    setInstitution(prev => ({ ...prev, coordinates }));
-  };
-
   const handleSubmit = async () => {
     setSubmitted(true);
-    
+
     // Check if required fields are filled
     if (
       !institution.name ||
@@ -107,12 +141,15 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
       !institution.address ||
       !institution.city ||
       !institution.state ||
-      !institution.country
+      !institution.country ||
+      !currentLocation || // Check if location is selected
+      (institution.coordinates[0] === 0 && institution.coordinates[1] === 0)
     ) {
       toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Please fill in all required fields',
+        severity: "error",
+        summary: "Error",
+        detail:
+          "Please fill in all required fields and select a location on the map",
         life: 3000,
       });
       return;
@@ -121,19 +158,19 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
     try {
       await createMutation.mutateAsync(institution);
       toast.current?.show({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Medical institution created successfully',
+        severity: "success",
+        summary: "Success",
+        detail: "Medical institution created successfully",
         life: 3000,
       });
       onHide();
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error('Error creating medical institution:', error);
+      console.error("Error creating medical institution:", error);
       toast.current?.show({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to create medical institution',
+        severity: "error",
+        summary: "Error",
+        detail: "Failed to create medical institution",
         life: 3000,
       });
     }
@@ -141,7 +178,12 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
 
   const dialogFooter = (
     <React.Fragment>
-      <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={onHide} />
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        className="p-button-text"
+        onClick={onHide}
+      />
       <Button
         label="Save"
         icon="pi pi-check"
@@ -156,7 +198,7 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
       <Toast ref={toast} />
       <Dialog
         visible={visible}
-        style={{ width: '80vw', maxWidth: '800px' }}
+        style={{ width: "80vw", maxWidth: "800px" }}
         header="Create Medical Institution"
         modal
         className="p-fluid"
@@ -175,14 +217,16 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
                 value={institution.name}
                 onChange={handleInputChange}
                 required
-                className={classNames({ 'p-invalid': submitted && !institution.name })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.name,
+                })}
+                placeholder="Enter institution name"
               />
               {submitted && !institution.name && (
                 <small className="p-error">Name is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="registrationNumber" className="font-bold">
@@ -195,15 +239,17 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
                 onChange={handleInputChange}
                 required
                 className={classNames({
-                  'p-invalid': submitted && !institution.registrationNumber,
+                  "p-invalid": submitted && !institution.registrationNumber,
                 })}
+                placeholder="Enter registration number"
               />
               {submitted && !institution.registrationNumber && (
-                <small className="p-error">Registration number is required.</small>
+                <small className="p-error">
+                  Registration number is required.
+                </small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="type" className="font-bold">
@@ -214,16 +260,17 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
                 name="type"
                 value={institution.type}
                 options={institutionTypes}
-                onChange={(e) => handleDropdownChange('type', e.value)}
+                onChange={(e) => handleDropdownChange("type", e.value)}
                 placeholder="Select a type"
-                className={classNames({ 'p-invalid': submitted && !institution.type })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.type,
+                })}
               />
               {submitted && !institution.type && (
                 <small className="p-error">Type is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="phoneNumber" className="font-bold">
@@ -235,14 +282,16 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
                 value={institution.phoneNumber}
                 onChange={handleInputChange}
                 required
-                className={classNames({ 'p-invalid': submitted && !institution.phoneNumber })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.phoneNumber,
+                })}
+                placeholder="Enter phone number"
               />
               {submitted && !institution.phoneNumber && (
                 <small className="p-error">Phone number is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="email" className="font-bold">
@@ -251,13 +300,13 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="email"
                 name="email"
-                value={institution.email || ''}
+                value={institution.email || ""}
                 onChange={handleInputChange}
                 type="email"
+                placeholder="Enter email address"
               />
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="website" className="font-bold">
@@ -266,31 +315,52 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="website"
                 name="website"
-                value={institution.website || ''}
+                value={institution.website || ""}
                 onChange={handleInputChange}
+                placeholder="Enter website URL"
               />
             </div>
           </div>
-
+          <div className="col-12">
+            <div className="field mb-3">
+              <label className="font-bold">Location*</label>
+              {/* Interactive Map Component */}
+              <InteractiveMap
+                onLocationChange={handleLocationChange}
+                initialMarkerPosition={currentLocation}
+                enableReverseGeocoding={true}
+                onAddressChange={handleAddressChange}
+                addressForGeocoding={addressForGeocoding}
+                locationHint="Click on the map to select the medical institution location, or enter the address above and click 'Find from Address'"
+                height="400px"
+                showHints={true}
+                showLocationButton={true}
+                showAddressButton={true}
+                showResetButton={true}
+                showCoordinatesDisplay={true}
+              />
+            </div>
+          </div>
           <div className="col-12">
             <div className="field">
               <label htmlFor="address" className="font-bold">
                 Address*
               </label>
-              <InputTextarea
+              <InputText
                 id="address"
                 name="address"
                 value={institution.address}
                 onChange={handleInputChange}
-                rows={2}
-                className={classNames({ 'p-invalid': submitted && !institution.address })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.address,
+                })}
+                placeholder="Enter street address"
               />
               {submitted && !institution.address && (
                 <small className="p-error">Address is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-4">
             <div className="field">
               <label htmlFor="city" className="font-bold">
@@ -302,14 +372,16 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
                 value={institution.city}
                 onChange={handleInputChange}
                 required
-                className={classNames({ 'p-invalid': submitted && !institution.city })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.city,
+                })}
+                placeholder="Enter city"
               />
               {submitted && !institution.city && (
                 <small className="p-error">City is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-4">
             <div className="field">
               <label htmlFor="state" className="font-bold">
@@ -321,14 +393,16 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
                 value={institution.state}
                 onChange={handleInputChange}
                 required
-                className={classNames({ 'p-invalid': submitted && !institution.state })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.state,
+                })}
+                placeholder="Enter state or province"
               />
               {submitted && !institution.state && (
                 <small className="p-error">State is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12 md:col-4">
             <div className="field">
               <label htmlFor="postalCode" className="font-bold">
@@ -337,36 +411,36 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="postalCode"
                 name="postalCode"
-                value={institution.postalCode || ''}
+                value={institution.postalCode || ""}
                 onChange={handleInputChange}
+                placeholder="Enter postal code"
               />
             </div>
-          </div>
-
-          <div className="col-12 md:col-6">
+          </div>          <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="country" className="font-bold">
                 Country*
               </label>
-              <Dropdown
+              <CountrySelect
                 id="country"
                 name="country"
                 value={institution.country}
-                options={countries}
-                onChange={(e) => handleDropdownChange('country', e.value)}
+                onChange={(value) => handleDropdownChange("country", value)}
                 placeholder="Select a country"
-                className={classNames({ 'p-invalid': submitted && !institution.country })}
+                className={classNames({
+                  "p-invalid": submitted && !institution.country,
+                })}
+                required={true}
+                submitted={submitted}
               />
               {submitted && !institution.country && (
                 <small className="p-error">Country is required.</small>
               )}
             </div>
           </div>
-
           <div className="col-12">
             <h3>Contact Person Information</h3>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="contactPersonName" className="font-bold">
@@ -375,12 +449,12 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="contactPersonName"
                 name="contactPersonName"
-                value={institution.contactPersonName || ''}
+                value={institution.contactPersonName || ""}
                 onChange={handleInputChange}
+                placeholder="Enter contact person's name"
               />
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="contactPersonRole" className="font-bold">
@@ -389,12 +463,12 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="contactPersonRole"
                 name="contactPersonRole"
-                value={institution.contactPersonRole || ''}
+                value={institution.contactPersonRole || ""}
                 onChange={handleInputChange}
+                placeholder="Enter contact person's role"
               />
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="contactPersonPhone" className="font-bold">
@@ -403,12 +477,12 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="contactPersonPhone"
                 name="contactPersonPhone"
-                value={institution.contactPersonPhone || ''}
+                value={institution.contactPersonPhone || ""}
                 onChange={handleInputChange}
+                placeholder="Enter contact person's phone"
               />
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="contactPersonEmail" className="font-bold">
@@ -417,57 +491,16 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <InputText
                 id="contactPersonEmail"
                 name="contactPersonEmail"
-                value={institution.contactPersonEmail || ''}
+                value={institution.contactPersonEmail || ""}
                 onChange={handleInputChange}
                 type="email"
+                placeholder="Enter contact person's email"
               />
             </div>
-          </div>
-
+          </div>{" "}
           <div className="col-12">
             <h3>Location and Services</h3>
           </div>
-
-          <div className="col-12 md:col-6">
-            <div className="field">
-              <label htmlFor="longitude" className="font-bold">
-                Longitude*
-              </label>
-              <InputText
-                id="longitude"
-                type="number"
-                value={institution.coordinates[0].toString()}
-                onChange={(e) => handleCoordinateChange(0, e.target.value)}
-                className={classNames({
-                  'p-invalid': submitted && institution.coordinates[0] === 0,
-                })}
-              />
-              {submitted && institution.coordinates[0] === 0 && (
-                <small className="p-error">Longitude is required.</small>
-              )}
-            </div>
-          </div>
-
-          <div className="col-12 md:col-6">
-            <div className="field">
-              <label htmlFor="latitude" className="font-bold">
-                Latitude*
-              </label>
-              <InputText
-                id="latitude"
-                type="number"
-                value={institution.coordinates[1].toString()}
-                onChange={(e) => handleCoordinateChange(1, e.target.value)}
-                className={classNames({
-                  'p-invalid': submitted && institution.coordinates[1] === 0,
-                })}
-              />
-              {submitted && institution.coordinates[1] === 0 && (
-                <small className="p-error">Latitude is required.</small>
-              )}
-            </div>
-          </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="operatingHours" className="font-bold">
@@ -476,12 +509,13 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <Chips
                 id="operatingHours"
                 value={institution.operatingHours}
-                onChange={(e) => handleDropdownChange('operatingHours', e.value)}
+                onChange={(e) =>
+                  handleDropdownChange("operatingHours", e.value)
+                }
                 placeholder="Add operating hours (e.g., 'Mon-Fri: 9AM-5PM')"
               />
             </div>
           </div>
-
           <div className="col-12 md:col-6">
             <div className="field">
               <label htmlFor="services" className="font-bold">
@@ -490,12 +524,11 @@ const CreateMedicalInstitutionDialog: React.FC<CreateMedicalInstitutionDialogPro
               <Chips
                 id="services"
                 value={institution.services}
-                onChange={(e) => handleDropdownChange('services', e.value)}
+                onChange={(e) => handleDropdownChange("services", e.value)}
                 placeholder="Add services"
               />
             </div>
           </div>
-
           <div className="col-12">
             <div className="field-checkbox">
               <Checkbox

@@ -1,3 +1,9 @@
+export enum ApprovalStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
 export interface MedicalInstitution {
   _id: string;
   name: string;
@@ -20,6 +26,11 @@ export interface MedicalInstitution {
   coordinates: [number, number]; // [longitude, latitude]
   isActive?: boolean;
   user: string;
+  approvalStatus?: ApprovalStatus;
+  rejectionReason?: string;
+  appliedAt?: string;
+  approvedAt?: string;
+  rejectedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,4 +73,9 @@ export interface MedicalInstitutionSearchParams {
   sort?: string;
   fields?: string;
   [key: string]: any;
+}
+
+export interface MedicalInstitutionApplicationDto extends CreateMedicalInstitutionDto {
+  userEmail: string;
+  userPassword: string;
 }

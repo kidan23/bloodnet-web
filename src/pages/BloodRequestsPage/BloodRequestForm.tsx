@@ -1,7 +1,7 @@
 // Reusable form component for blood request creation and editing
 import React from "react";
 import { InputText } from "primereact/inputtext";
-import { InputNumber } from "primereact/inputnumber";
+import { InputNumber } from "primereact/inputNumber";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";

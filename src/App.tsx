@@ -2,9 +2,16 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import ApplyPage from "./pages/ApplyPage";
+import AdminApplicationsPage from "./pages/AdminApplicationsPage";
 import MainLayout from "./components/layout/MainLayout";
+import ProfileCompletionChecker from "./components/ProfileCompletionChecker";
+import ApprovalStatusChecker from "./components/ApprovalStatusChecker";
+import RoleBasedAccess from "./components/RoleBasedAccess";
 import { useAuth } from "./state/authContext";
-import { DonorsListPage as DonorsPage, DonorDetailsPage } from "./pages/DonorsPage";
+import { UserRole } from "./state/auth";
+import { DonorsRoutes } from "./pages/DonorsPage";
 import { BloodRequestsRoutes } from "./pages/BloodRequestsPage";
 import BloodBanksRoutes from "./pages/BloodBanksPage/BloodBanksRoutes";
 import { DonationsRoutes } from "./pages/DonationsPage/index";
@@ -23,24 +30,74 @@ const App: React.FC = () => {
         <Route path="/" element={<MainLayout isLoggedIn={isLoggedIn} />}>
           {isLoggedIn ? (
             <>
-              <Route index element={<HomePage />} />
-              <Route path="/dashboard" element={<HomePage />} />
-              <Route path="/donors" element={<DonorsPage />} />
-              <Route path="/donors/:id" element={<DonorDetailsPage />} />
-              <Route path="/blood-requests/*" element={<BloodRequestsRoutes />} />
-              <Route path="/blood-banks/*" element={<BloodBanksRoutes />} />
-              <Route path="/donations/*" element={<DonationsRoutes />} />
-              <Route path="/medical-institutions/*" element={<MedicalInstitutionsRoutes />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route
-                path="/settings/account"
-                element={<AccountSettingsPage />}
-              />
-              <Route
-                path="/settings/preferences"
-                element={<PreferencesPage />}
-              />
+              <Route index element={
+                <ApprovalStatusChecker>
+                  <ProfileCompletionChecker>
+                    <HomePage />
+                  </ProfileCompletionChecker>
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/dashboard" element={
+                <ApprovalStatusChecker>
+                  <ProfileCompletionChecker>
+                    <HomePage />
+                  </ProfileCompletionChecker>
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/donors/*" element={
+                <ApprovalStatusChecker>
+                  <ProfileCompletionChecker>
+                    <DonorsRoutes />
+                  </ProfileCompletionChecker>
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/blood-requests/*" element={
+                <ApprovalStatusChecker>
+                  <BloodRequestsRoutes />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/blood-banks/*" element={
+                <ApprovalStatusChecker>
+                  <BloodBanksRoutes />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/donations/*" element={
+                <ApprovalStatusChecker>
+                  <DonationsRoutes />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/medical-institutions/*" element={
+                <ApprovalStatusChecker>
+                  <MedicalInstitutionsRoutes />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/reports" element={
+                <ApprovalStatusChecker>
+                  <ReportsPage />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/settings" element={
+                <ApprovalStatusChecker>
+                  <SettingsPage />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/settings/account" element={
+                <ApprovalStatusChecker>
+                  <AccountSettingsPage />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/settings/preferences" element={
+                <ApprovalStatusChecker>
+                  <PreferencesPage />
+                </ApprovalStatusChecker>
+              } />
+              <Route path="/admin/applications" element={
+                <ApprovalStatusChecker>
+                  <RoleBasedAccess allowedRoles={[UserRole.ADMIN]}>
+                    <AdminApplicationsPage />
+                  </RoleBasedAccess>
+                </ApprovalStatusChecker>
+              } />
             </>
           ) : (
             <Route index element={<LoginPage />} />
@@ -56,6 +113,36 @@ const App: React.FC = () => {
               <MainLayout isLoggedIn={false}>
                 <LoginPage />
               </MainLayout>
+            )
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/" replace />
+            ) : (
+              <div className="h-screen flex align-items-center justify-content-center surface-ground">
+                <div className="w-full max-w-md mx-auto p-4">
+                  <SignupPage />
+                </div>
+              </div>
+            )
+          }
+        />
+
+        <Route
+          path="/apply"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/" replace />
+            ) : (
+              <div className="h-screen flex align-items-center justify-content-center surface-ground">
+                <div className="w-full max-w-4xl mx-auto p-4">
+                  <ApplyPage />
+                </div>
+              </div>
             )
           }
         />

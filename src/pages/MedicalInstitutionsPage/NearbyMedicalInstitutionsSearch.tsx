@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
+import { InputNumber } from 'primereact/inputNumber';
 import { Toast } from 'primereact/toast';
 import { Card } from 'primereact/card';
 import { useNearbyMedicalInstitutions } from './api';

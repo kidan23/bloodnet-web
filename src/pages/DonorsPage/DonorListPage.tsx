@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useDonors } from "../../state/donors";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "primereact/button";
@@ -32,14 +33,22 @@ const DonorsPage: React.FC = () => {  // Pagination state
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-content-between align-items-center mb-4">
+    <div className="p-4">      <div className="flex justify-content-between align-items-center mb-4">
         <h1 className="m-0">Donors Management</h1>
-        <Button
-          label="Add New Donor"
-          icon="pi pi-plus"
-          onClick={() => setShowDialog(true)}
-        />
+        <div className="flex gap-2">
+          <Link to="/donors/nearby">
+            <Button
+              label="Find Nearby Donors"
+              icon="pi pi-map-marker"
+              className="p-button-outlined"
+            />
+          </Link>
+          <Button
+            label="Add New Donor"
+            icon="pi pi-plus"
+            onClick={() => setShowDialog(true)}
+          />
+        </div>
       </div>
 
       <Dialog

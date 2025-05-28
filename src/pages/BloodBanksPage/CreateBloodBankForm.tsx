@@ -4,6 +4,11 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import { useCreateBloodBank } from "../../state/bloodBanks";
+import {
+  InteractiveMap,
+  type LatLng,
+  type AddressDetails,
+} from "../../components/map";
 import type { CreateBloodBankDto, GeoPoint } from "./types";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -24,9 +29,23 @@ const CreateBloodBankForm: React.FC<CreateBloodBankFormProps> = ({
       type: "Point",
       coordinates: [0, 0],
     },
+  });  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Location state for InteractiveMap
+  const [currentLocation, setCurrentLocation] = useState<LatLng | null>(() => {
+    // Initialize from formData if coordinates exist and are not default [0, 0]
+    if (
+      formData.location?.coordinates &&
+      formData.location.coordinates[0] !== 0 &&
+      formData.location.coordinates[1] !== 0
+    ) {
+      return {
+        lng: formData.location.coordinates[0],
+        lat: formData.location.coordinates[1],
+      };
+    }
+    return null;
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -40,18 +59,42 @@ const CreateBloodBankForm: React.FC<CreateBloodBankFormProps> = ({
       });
     }
   };
-  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) return;
+
+  // Handle location change from InteractiveMap
+  const handleLocationChange = (location: LatLng) => {
+    setCurrentLocation(location);
     const newLocation = { ...formData.location } as GeoPoint;
-    if (name === "latitude") {
-      newLocation.coordinates = [newLocation.coordinates[0], numValue];
-    } else if (name === "longitude") {
-      newLocation.coordinates = [numValue, newLocation.coordinates[1]];
-    }
+    newLocation.coordinates = [location.lng, location.lat];
     setFormData((prev) => ({ ...prev, location: newLocation }));
   };
+
+  // Handle address change from reverse geocoding
+  const handleAddressChange = (addressDetails: AddressDetails) => {
+    if (addressDetails.address) {
+      setFormData((prev) => ({ ...prev, address: addressDetails.address }));
+    }
+    if (addressDetails.city) {
+      setFormData((prev) => ({ ...prev, city: addressDetails.city }));
+    }
+    if (addressDetails.state) {
+      setFormData((prev) => ({ ...prev, state: addressDetails.state }));
+    }
+    if (addressDetails.postalCode) {
+      setFormData((prev) => ({ ...prev, postalCode: addressDetails.postalCode }));
+    }
+    if (addressDetails.country) {
+      setFormData((prev) => ({ ...prev, country: addressDetails.country }));
+    }
+  };
+  // Create address object for geocoding
+  const addressForGeocoding = {
+    address: formData.address,
+    city: formData.city,
+    state: formData.state,
+    postalCode: formData.postalCode,
+    country: formData.country,
+  };
+  
   const handleBloodTypeToggle = (bloodType: string) => {
     setFormData((prev) => {
       const currentTypes = prev.bloodTypesAvailable || [];
@@ -211,36 +254,28 @@ const CreateBloodBankForm: React.FC<CreateBloodBankFormProps> = ({
                     onChange={handleInputChange}
                     placeholder="Enter country"
                   />
-                </div>
-              </div>
+                </div>              </div>
             </div>
+          </div>
 
-            <div
-              className="flex flex-column gap-2"
-              style={{ flex: 1, minWidth: "220px" }}
-            >
-              {" "}
-              <label>Latitude</label>
-              <InputText
-                name="latitude"
-                value={
-                  formData.location?.coordinates[1] !== undefined
-                    ? String(formData.location.coordinates[1])
-                    : ""
-                }
-                onChange={handleLocationChange}
-                placeholder="Enter latitude coordinate"
-              />
-              <label>Longitude</label>
-              <InputText
-                name="longitude"
-                value={
-                  formData.location?.coordinates[0] !== undefined
-                    ? String(formData.location.coordinates[0])
-                    : ""
-                }
-                onChange={handleLocationChange}
-                placeholder="Enter longitude coordinate"
+          {/* Location Section with Interactive Map */}
+          <div className="mb-4">
+            <h3 className="text-xl font-semibold mb-3">Location</h3>
+            <div className="field mb-3">
+              {/* Interactive Map Component */}
+              <InteractiveMap
+                onLocationChange={handleLocationChange}
+                initialMarkerPosition={currentLocation}
+                enableReverseGeocoding={true}
+                onAddressChange={handleAddressChange}
+                addressForGeocoding={addressForGeocoding}
+                locationHint="Click on the map to select the blood bank location, or enter the address above and click 'Find from Address'"
+                height="400px"
+                showHints={true}
+                showLocationButton={true}
+                showAddressButton={true}
+                showResetButton={true}
+                showCoordinatesDisplay={true}
               />
             </div>
           </div>

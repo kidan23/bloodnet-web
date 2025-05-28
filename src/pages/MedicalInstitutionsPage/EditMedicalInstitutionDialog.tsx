@@ -11,6 +11,7 @@ import { Toast } from "primereact/toast";
 import { useUpdateMedicalInstitution, useMedicalInstitution } from "./api";
 import type { UpdateMedicalInstitutionDto } from "./types";
 import { useRef } from "react";
+import CountrySelect from "../../components/CountrySelect";
 
 interface EditMedicalInstitutionDialogProps {
   visible: boolean;
@@ -26,15 +27,6 @@ const institutionTypes = [
   { label: "Donation Center", value: "Donation Center" },
   { label: "Research Center", value: "Research Center" },
   { label: "Other", value: "Other" },
-];
-
-const countries = [
-  { label: "United States", value: "United States" },
-  { label: "Canada", value: "Canada" },
-  { label: "United Kingdom", value: "United Kingdom" },
-  { label: "Australia", value: "Australia" },
-  { label: "New Zealand", value: "New Zealand" },
-  // Add more countries as needed
 ];
 
 const EditMedicalInstitutionDialog: React.FC<
@@ -353,23 +345,22 @@ const EditMedicalInstitutionDialog: React.FC<
                   onChange={handleInputChange}
                 />
               </div>
-            </div>
-
-            <div className="col-12 md:col-6">
+            </div>            <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="country" className="font-bold">
                   Country*
                 </label>
-                <Dropdown
+                <CountrySelect
                   id="country"
                   name="country"
                   value={institution.country || ""}
-                  options={countries}
-                  onChange={(e) => handleDropdownChange("country", e.value)}
+                  onChange={(value) => handleDropdownChange("country", value)}
                   placeholder="Select a country"
                   className={classNames({
                     "p-invalid": submitted && !institution.country,
                   })}
+                  required={true}
+                  submitted={submitted}
                 />
                 {submitted && !institution.country && (
                   <small className="p-error">Country is required.</small>

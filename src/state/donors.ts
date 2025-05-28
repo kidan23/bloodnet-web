@@ -98,6 +98,58 @@ export async function deleteDonor(id: string) {
   return data;
 }
 
+// Search for nearby donors
+export async function findNearbyDonors(
+  bloodType: string,
+  lng: number,
+  lat: number,
+  radius?: number,
+  params?: any
+) {
+  try {
+    const queryParams = {
+      lng,
+      lat,
+      radius: radius || 10, // Default 10km radius
+      ...params
+    };
+    
+    // Only add bloodType to query if it's specified
+    if (bloodType) {
+      queryParams.bloodType = bloodType;
+    }
+    
+    const { data } = await api.get('/donors/nearby', { params: queryParams });
+    return data;
+  } catch (error) {
+    console.error("Error fetching nearby donors:", error);
+    // For demo purposes, return mock nearby data
+    let filteredMockData = mockDonorData;
+    
+    // Filter by blood type only if specified
+    if (bloodType) {
+      filteredMockData = mockDonorData.filter(donor => 
+        `${donor.bloodType}${donor.RhFactor}` === bloodType || 
+        donor.bloodType === bloodType.replace(/[+-]/, '') // Handle cases where RhFactor is separate
+      );
+    }
+    
+    return {
+      results: filteredMockData.map(donor => ({
+        ...donor,
+        // Add mock location data
+        location: {
+          type: "Point",
+          coordinates: [39.45389 + (Math.random() - 0.5) * 0.1, 13.5169 + (Math.random() - 0.5) * 0.1] // Mock coordinates around Mek'ele
+        },
+        // Add distance for sorting
+        distance: Math.round(Math.random() * 10 * 100) / 100, // Random distance 0-10km
+      })),
+      total: filteredMockData.length
+    };
+  }
+}
+
 export function useDonors(params?: any) {
   return useQuery({
     queryKey: ['donors', params],
@@ -140,5 +192,20 @@ export function useDeleteDonor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['donors'] });
     },
+  });
+}
+
+// React Query hook for nearby donors
+export function useNearbyDonors(
+  bloodType: string,
+  lng: number,
+  lat: number,
+  radius?: number,
+  params?: any
+) {
+  return useQuery({
+    queryKey: ['donors', 'nearby', bloodType, lng, lat, radius, params],
+    queryFn: () => findNearbyDonors(bloodType, lng, lat, radius, params),
+    enabled: !!(lng && lat), // Only require coordinates, blood type is optional
   });
 }

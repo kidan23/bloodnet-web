@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
@@ -6,34 +6,47 @@ import { Button } from "primereact/button";
 import { Divider } from "primereact/divider";
 import { classNames } from "primereact/utils";
 import { useNavigate } from "react-router-dom";
-import { useLogin } from "../state/auth";
+import { useSignup } from "../state/auth";
 import { useAuth } from "../state/authContext";
+import { UserRole } from "../state/auth";
 
-const LoginPage: React.FC = () => {
+const SignupPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [submitted, setSubmitted] = useState(false);  const [loginError, setLoginError] = useState<string | null>(null);
-  const loginMutation = useLogin();
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
+  const signupMutation = useSignup();
   const navigate = useNavigate();
-
   const { login } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    setLoginError(null);
-    if (email && password) {
+    setSignupError(null);
+    
+    if (email && password && confirmPassword) {
+      if (password !== confirmPassword) {
+        setSignupError("Passwords do not match");
+        return;
+      }
+      
       try {
-        const data = await loginMutation.mutateAsync({ email, password });
+        const data = await signupMutation.mutateAsync({
+          email,
+          password,
+          role: UserRole.DONOR
+        });
         login(data.user, data.access_token);
+        navigate('/');
       } catch (err: any) {
-        setLoginError(err?.response?.data?.message || "Login failed");
+        setSignupError(err?.response?.data?.message || "Signup failed");
       }
     }
   };
 
   return (
-    <Card title="Sign In" className="shadow-4">
+    <Card title="Create Account" className="shadow-4">
       <div className="flex justify-content-center mb-4">
         <i
           className="pi pi-heart-fill text-red-500"
@@ -41,10 +54,10 @@ const LoginPage: React.FC = () => {
         ></i>
       </div>
       <h2 className="text-center text-primary font-bold mb-5">
-        BloodNet Portal
+        Join BloodNet as a Donor
       </h2>
 
-      <form onSubmit={handleLogin} className="p-fluid">
+      <form onSubmit={handleSignup} className="p-fluid">
         <div className="field mb-4">
           <span className="p-float-label p-input-icon-right">
             <i className="pi pi-envelope pl-2" />
@@ -57,7 +70,7 @@ const LoginPage: React.FC = () => {
                 "pl-5"
               )}
             />
-            <label htmlFor="email" className=" pl-4">Email*</label>
+            <label htmlFor="email" className="pl-4">Email*</label>
           </span>
           {submitted && !email && (
             <small className="p-error">Email is required.</small>
@@ -71,7 +84,6 @@ const LoginPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               toggleMask
-              feedback={false}
               className={classNames({ "p-invalid": submitted && !password })}
             />
             <label htmlFor="password">Password*</label>
@@ -81,32 +93,50 @@ const LoginPage: React.FC = () => {
           )}
         </div>
 
-        <div className="field-checkbox mb-4">
-          <a className="text-primary font-medium cursor-pointer">
-            Forgot password?
-          </a>
+        <div className="field mb-4">
+          <span className="p-float-label">
+            <Password
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              toggleMask
+              feedback={false}
+              className={classNames({ "p-invalid": submitted && !confirmPassword })}
+            />
+            <label htmlFor="confirmPassword">Confirm Password*</label>
+          </span>
+          {submitted && !confirmPassword && (
+            <small className="p-error">Please confirm your password.</small>
+          )}
         </div>
 
-        {loginError && <small className="p-error">{loginError}</small>}
+        {signupError && <small className="p-error mb-3 block">{signupError}</small>}
 
-        <Button type="submit" label="Sign In" className="mb-4" />
+        <Button 
+          type="submit" 
+          label="Create Account" 
+          className="mb-4"
+          loading={signupMutation.isPending}
+        />
       </form>
 
       <Divider align="center">
         <span className="text-600 font-normal">OR</span>
-      </Divider>      <div className="mt-4 text-center">
+      </Divider>
+
+      <div className="mt-4 text-center">
         <p className="text-600 line-height-3 mb-3">
-          Don't have an account yet?{" "}
+          Already have an account?{" "}
           <Button
             link
             className="text-primary font-medium p-0"
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate('/login')}
           >
-            Create Donor Account
+            Sign In
           </Button>
         </p>
-        <p className="text-600 line-height-3">
-          Registering an organization?{" "}
+        <p className="text-600 line-height-3 mb-3">
+          Want to register your organization?{" "}
           <Button
             link
             className="text-primary font-medium p-0"
@@ -114,9 +144,10 @@ const LoginPage: React.FC = () => {
           >
             Apply Here
           </Button>
-        </p>      </div>
+        </p>
+      </div>
     </Card>
   );
 };
 
-export default LoginPage;
+export default SignupPage;

@@ -13,12 +13,15 @@ const BloodBankCard: React.FC<BloodBankCardProps> = ({ bloodBank }) => {
     <Card
       title={bloodBank.name}
       subTitle={bloodBank.city && bloodBank.state ? `${bloodBank.city}, ${bloodBank.state} ${bloodBank.postalCode || ''}` : bloodBank.city || ''}
-      className="mb-3 flex flex-column justify-between h-full"
-      footer={
+      className="mb-3 flex flex-column justify-between h-full"      footer={
         <div className="flex justify-end mt-3">
-          <Link to={`/blood-banks/${bloodBank.id}`}>
-            <Button label="View Details" icon="pi pi-search" className="sm" />
-          </Link>
+          {bloodBank._id ? (
+            <Link to={`/blood-banks/${bloodBank._id}`}>
+              <Button label="View Details" icon="pi pi-search" className="sm" />
+            </Link>
+          ) : (
+            <Button label="View Details" icon="pi pi-search" className="sm" disabled />
+          )}
         </div>
       }
     >
