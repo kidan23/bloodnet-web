@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Dialog } from "primereact/dialog";
-import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";

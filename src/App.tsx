@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
@@ -6,9 +5,10 @@ import LoginPage from "./pages/LoginPage";
 import MainLayout from "./components/layout/MainLayout";
 import { useAuth } from "./state/authContext";
 import { DonorsListPage as DonorsPage, DonorDetailsPage } from "./pages/DonorsPage";
-import RequestsPage from "./pages/RequestsPage";
+import { BloodRequestsRoutes } from "./pages/BloodRequestsPage";
 import BloodBanksRoutes from "./pages/BloodBanksPage/BloodBanksRoutes";
-import DonationsPage from "./pages/DonationsPage";
+import { DonationsRoutes } from "./pages/DonationsPage/index";
+import { MedicalInstitutionsRoutes } from "./pages/MedicalInstitutionsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
@@ -27,9 +27,10 @@ const App: React.FC = () => {
               <Route path="/dashboard" element={<HomePage />} />
               <Route path="/donors" element={<DonorsPage />} />
               <Route path="/donors/:id" element={<DonorDetailsPage />} />
-              <Route path="/requests" element={<RequestsPage />} />
+              <Route path="/blood-requests/*" element={<BloodRequestsRoutes />} />
               <Route path="/blood-banks/*" element={<BloodBanksRoutes />} />
-              <Route path="/donations" element={<DonationsPage />} />
+              <Route path="/donations/*" element={<DonationsRoutes />} />
+              <Route path="/medical-institutions/*" element={<MedicalInstitutionsRoutes />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route

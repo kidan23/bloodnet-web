@@ -25,22 +25,23 @@ const Sidebar: React.FC<SidebarProps> = ({
   onHide = () => {},
 }) => {
   const location = useLocation();
-  // Only one ref needed for the main menu collapse
+  // Main menu collapse ref
   const btnRef1 = useRef(null);
+  // Create refs for submenu items
+  const donationsMenuRef = useRef(null);
+  const settingsMenuRef = useRef(null);
 
   const menuItems: MenuItem[] = [
     {
       label: "Dashboard",
       icon: "pi pi-home",
       to: "/",
-    },
-    {
+    },    {
       label: "Blood Requests",
       icon: "pi pi-heart",
-      to: "/requests",
+      to: "/blood-requests",
       badge: "5",
-    },
-    {
+    },    {
       label: "Donors",
       icon: "pi pi-users",
       to: "/donors",
@@ -51,9 +52,26 @@ const Sidebar: React.FC<SidebarProps> = ({
       to: "/blood-banks",
     },
     {
+      label: "Medical Institutions",
+      icon: "pi pi-hospital",
+      to: "/medical-institutions",
+    },
+    {
       label: "Donations",
       icon: "pi pi-calendar",
       to: "/donations",
+      items: [
+        {
+          label: "All Donations",
+          icon: "pi pi-list",
+          to: "/donations",
+        },
+        {
+          label: "Record Donation",
+          icon: "pi pi-plus",
+          to: "/donations/create",
+        },
+      ],
     },
     {
       label: "Reports",
@@ -135,28 +153,39 @@ const Sidebar: React.FC<SidebarProps> = ({
                     </StyleClass>
                     <ul className="list-none p-0 m-0 overflow-hidden">
                       {menuItems.map((item, index) => (
-                        <li key={index} className="mb-1">
-                          {item.items ? (
+                        <li key={index} className="mb-1">                          {item.items ? (
                             <>
-                              <div className="p-ripple flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
-                                <i className={`${item.icon} mr-2`}></i>
-                                <span className="font-medium">
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <span
-                                    className="inline-flex align-items-center justify-content-center ml-auto bg-primary text-0 border-circle"
-                                    style={{
-                                      minWidth: "1.5rem",
-                                      height: "1.5rem",
-                                    }}
-                                  >
-                                    {item.badge}
+                              <StyleClass
+                                nodeRef={item.label === "Donations" ? donationsMenuRef : settingsMenuRef}
+                                selector="@next"
+                                enterClassName="hidden"
+                                enterActiveClassName="slidedown"
+                                leaveToClassName="hidden"
+                                leaveActiveClassName="slideup"
+                              >
+                                <div
+                                  ref={item.label === "Donations" ? donationsMenuRef : settingsMenuRef}
+                                  className="p-ripple flex align-items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full"
+                                >
+                                  <i className={`${item.icon} mr-2`}></i>
+                                  <span className="font-medium">
+                                    {item.label}
                                   </span>
-                                )}
-                                <i className="pi pi-chevron-down ml-auto mr-1"></i>
-                                <Ripple />
-                              </div>
+                                  {item.badge && (
+                                    <span
+                                      className="inline-flex align-items-center justify-content-center ml-auto bg-primary text-0 border-circle"
+                                      style={{
+                                        minWidth: "1.5rem",
+                                        height: "1.5rem",
+                                      }}
+                                    >
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                  <i className="pi pi-chevron-down ml-auto mr-1"></i>
+                                  <Ripple />
+                                </div>
+                              </StyleClass>
                               <ul className="list-none py-0 pl-3 pr-0 m-0 hidden overflow-y-hidden transition-all transition-duration-400 transition-ease-in-out">
                                 {item.items.map((child, childIndex) => (
                                   <li key={childIndex}>

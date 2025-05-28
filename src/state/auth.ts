@@ -1,6 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import api from './api';
 
+export enum UserRole {
+  DONOR = 'donor',
+  HOSPITAL = 'hospital',
+  ADMIN = 'admin',
+}
+
 export interface LoginPayload {
   email: string;
   password: string;

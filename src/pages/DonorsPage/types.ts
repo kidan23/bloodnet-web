@@ -1,4 +1,16 @@
-export type BloodType = "A" | "B" | "AB" | "O";
+export type BloodType = {
+  A: "A";
+  B: "B";
+  AB: "AB";
+  O: "O";
+};
+
+export enum BloodTypeEnum {
+  A = "A",
+  B = "B",
+  AB = "AB",
+  O = "O"
+}
 
 export interface LocationPoint {
   type: "Point";
