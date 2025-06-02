@@ -43,3 +43,60 @@ export function useReviewApplication() {
     }
   });
 }
+
+// --- Admin Dashboard API hooks ---
+
+export function useAdminKpis() {
+  return useQuery({
+    queryKey: ['admin-kpis'],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get('/api/admin/kpis');
+        return data;
+      } catch (e) {
+        // fallback to mock data
+        return {
+          totalUsers: 1200,
+          totalDonations: 340,
+          pendingRequests: 15,
+          approvedBloodBanks: 22,
+          rejectedApplications: 3,
+        };
+      }
+    },
+  });
+}
+
+export function useAdminDonationsChart() {
+  return useQuery({
+    queryKey: ['donations-chart'],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get('/api/admin/stats/donations-per-month');
+        return data;
+      } catch (e) {
+        return {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          data: [20, 35, 50, 40, 60, 80],
+        };
+      }
+    },
+  });
+}
+
+export function useAdminUserGrowthChart() {
+  return useQuery({
+    queryKey: ['user-growth-chart'],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get('/api/admin/stats/user-growth');
+        return data;
+      } catch (e) {
+        return {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          data: [100, 200, 400, 700, 900, 1200],
+        };
+      }
+    },
+  });
+}

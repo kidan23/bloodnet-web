@@ -34,18 +34,66 @@ export function useDonations(options?: {
   page?: number;
   pageSize?: number;
   filters?: DonationFilters;
-}) {
-  return useQuery({
-    queryKey: ['donations', options],
-    queryFn: async () => {
+}) {  return useQuery({
+    queryKey: options?.donorId 
+      ? ['donations', 'donor', options.donorId, options] 
+      : ['donations', options],queryFn: async () => {
       try {
         const page = options?.page || 0;
         const pageSize = options?.pageSize || 10;
-        let queryParams = `page=${page+1}&limit=${pageSize}`;
         
+        // Use donor-specific endpoint if donorId is provided
         if (options?.donorId) {
-          queryParams += `&donor=${options.donorId}`;
+          let queryParams = `page=${page+1}&limit=${pageSize}`;
+          
+          if (options?.status) {
+            queryParams += `&status=${options.status}`;
+          }
+          
+          if (options?.startDate) {
+            queryParams += `&startDate=${options.startDate}`;
+          }
+          
+          if (options?.endDate) {
+            queryParams += `&endDate=${options.endDate}`;
+          }
+          
+          if (options?.filters) {
+            Object.entries(options.filters).forEach(([key, value]) => {
+              if (value) {
+                queryParams += `&${key}=${value}`;
+              }
+            });
+          }
+          
+          const { data } = await api.get(`/donations/donor/${options.donorId}?${queryParams}`);
+          
+          // Handle the specific API response format
+          if (data.results) {
+            return {
+              content: data.results,
+              totalElements: data.totalResults,
+              totalPages: data.totalPages,
+              number: data.page - 1, // Convert to 0-indexed for consistency
+              size: data.limit,
+              hasNext: data.page < data.totalPages,
+              hasPrevious: data.page > 1
+            } as PaginatedDonationsResponse;
+          }
+          
+          return {
+            content: data,
+            totalElements: data.length,
+            totalPages: 1,
+            number: page,
+            size: pageSize,
+            hasNext: false,
+            hasPrevious: page > 0
+          } as PaginatedDonationsResponse;
         }
+        
+        // Use general donations endpoint for other cases
+        let queryParams = `page=${page+1}&limit=${pageSize}`;
         
         if (options?.bloodBankId) {
           queryParams += `&bloodBank=${options.bloodBankId}`;

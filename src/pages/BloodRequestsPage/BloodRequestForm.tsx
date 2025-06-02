@@ -1,7 +1,7 @@
 // Reusable form component for blood request creation and editing
 import React from "react";
 import { InputText } from "primereact/inputtext";
-import { InputNumber } from "primereact/inputNumber";
+import { InputNumber } from "primereact/inputnumber";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
@@ -12,7 +12,7 @@ import {
   RequestStatus,
   type UpdateBloodRequestDto,
 } from "./types";
-import LocationPicker from "./LocationPicker";
+import { InteractiveMap } from "../../components/map";
 
 interface BloodType {
   label: string;
@@ -171,11 +171,21 @@ const BloodRequestForm: React.FC<BloodRequestFormProps> = ({
 
       <div className="col-12 field">
         <label htmlFor="coordinates">Location*</label>
-        <LocationPicker
-          coordinates={formData.coordinates || [0, 0]}
-          onChange={(coords) => onChange("coordinates", coords)}
-          error={errors.coordinates}
+        <InteractiveMap
+          initialMarkerPosition={formData.coordinates ? { lat: formData.coordinates[0], lng: formData.coordinates[1] } : undefined}
+          onLocationChange={(loc) => onChange("coordinates", [loc.lat, loc.lng])}
+          height="300px"
+          width="100%"
+          showHints={true}
+          showCoordinatesDisplay={true}
+          draggableMarker={true}
+          showLocationButton={true}
+          showResetButton={true}
+          className={errors.coordinates ? "p-invalid" : ""}
         />
+        {errors.coordinates && (
+          <small className="p-error">{errors.coordinates}</small>
+        )}
       </div>
 
       <div className="col-12 field">

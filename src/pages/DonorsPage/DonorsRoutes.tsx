@@ -4,19 +4,22 @@ import DonorsListPage from "./DonorListPage";
 import DonorDetailsPage from "./DonorDetailsPage";
 import CreateDonorForm from "./CreateDonorForm";
 import NearbyDonorsPage from "./NearbyDonorsPage";
+import { Card } from "primereact/card";
 
 const CreateDonorWrapper: React.FC = () => {
   const navigate = useNavigate();
   
   return (
-    <CreateDonorForm
-      onSuccess={() => {
-        navigate('/donors');
-      }}
-      onCancel={() => {
-        navigate('/donors');
-      }}
-    />
+    <Card>
+      <CreateDonorForm
+        onSuccess={() => {
+          navigate('/donors');
+        }}
+        onCancel={() => {
+          navigate('/donors');
+        }}
+      />
+    </Card>
   );
 };
 

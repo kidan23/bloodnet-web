@@ -5,6 +5,7 @@ import api from './api';
 const mockDonorData = [
   {
     _id: "1",
+    user: "user123", // Mock user ID
     firstName: "John",
     lastName: "Doe",
     phoneNumber: "555-123-4567",
@@ -27,9 +28,9 @@ const mockDonorData = [
     emergencyContactName: "Jane Doe",
     emergencyContactPhone: "555-987-6543",
     emergencyContactRelationship: "Spouse"
-  },
-  {
+  },  {
     _id: "2",
+    user: "user456", // Mock user ID
     firstName: "Sarah",
     lastName: "Smith",
     phoneNumber: "555-234-5678",
@@ -77,6 +78,19 @@ export async function fetchDonorById(id: string) {
     console.error(`Error fetching donor with ID ${id}:`, error);
     // For demo purposes, return mock data if the API fails
     return mockDonorData.find(donor => donor._id === id) || null;
+  }
+}
+
+// Fetch a single donor by user ID (GET /donors/user/:userId)
+export async function fetchDonorByUserId(userId: string) {
+  try {
+    const { data } = await api.get(`/donors/user/${userId}`);
+    return data;
+  } catch (error) {
+    console.error(`Error fetching donor for user ID ${userId}:`, error);
+    // For demo purposes, return mock data if the API fails
+    // In a real app, this would return null if no donor profile exists
+    return mockDonorData.find(donor => donor.user === userId) || null;
   }
 }
 
@@ -162,6 +176,14 @@ export function useDonor(id?: string) {
     queryKey: ['donor', id],
     queryFn: () => fetchDonorById(id!),
     enabled: !!id, // Only run the query if an ID is provided
+  });
+}
+
+export function useDonorByUserId(userId?: string) {
+  return useQuery({
+    queryKey: ['donor', 'user', userId],
+    queryFn: () => fetchDonorByUserId(userId!),
+    enabled: !!userId, // Only run the query if a user ID is provided
   });
 }
 

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import api from './api';
+import { fetchDonorByUserId } from './donors';
 import { UserRole, type User, ApprovalStatus } from './auth';
 
 interface AuthContextType {
@@ -10,7 +11,7 @@ interface AuthContextType {
   userRole: UserRole;
   isApproved: boolean;
   profileComplete: boolean;
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string) => Promise<void>;
   logout: () => void;
   checkProfileStatus: () => Promise<void>;
 }
@@ -26,6 +27,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profileComplete, setProfileComplete] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Function to fetch and set donor profile for donor users
+  const fetchAndSetDonorProfile = async (userData: User) => {
+    if (userData.role === UserRole.DONOR && !userData.donorProfile) {
+      try {
+        const donorData = await fetchDonorByUserId(userData._id);
+        if (donorData) {
+          const updatedUser = { ...userData, donorProfile: donorData._id };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          return updatedUser;
+        }
+      } catch (error) {
+        console.error('Failed to fetch donor profile:', error);
+      }
+    }
+    return userData;
+  };
+
   useEffect(() => {    const checkToken = async () => {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
@@ -33,23 +52,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           const res = await api.post('/auth/check-token', {}, {
             headers: { Authorization: `Bearer ${storedToken}` }
-          });
-          if (res.data && res.data.user) {
+          });          if (res.data && res.data.user) {
             setToken(storedToken);
-            setUser(res.data.user);
+            const userData = res.data.user;
+            
+            // Fetch donor profile if user is a donor
+            const updatedUser = await fetchAndSetDonorProfile(userData);
+            setUser(updatedUser);
             setIsLoggedIn(true);
               // Set user role based on user data
-            if (res.data.user && res.data.user.role) {
-              setUserRole(res.data.user.role as UserRole);
+            if (updatedUser && updatedUser.role) {
+              setUserRole(updatedUser.role as UserRole);
             }
             
             // Set approval status
-            setIsApproved(res.data.user.approvalStatus === ApprovalStatus.APPROVED || res.data.user.role === UserRole.DONOR);
+            setIsApproved(updatedUser.approvalStatus === ApprovalStatus.APPROVED || updatedUser.role === UserRole.DONOR);
             
             // Set profile completion status
-            setProfileComplete(res.data.user.profileComplete || false);
+            setProfileComplete(updatedUser.profileComplete || false);
             
-            localStorage.setItem('user', JSON.stringify(res.data.user));
+            localStorage.setItem('user', JSON.stringify(updatedUser));
           } else {
             setUser(null);
             setToken(null);
@@ -71,24 +93,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     checkToken();
     // eslint-disable-next-line
-  }, []);  const login = (userData: User, token: string) => {
-    setUser(userData);
+  }, []);  const login = async (userData: User, token: string) => {
+    // Fetch donor profile if user is a donor
+    const updatedUser = await fetchAndSetDonorProfile(userData);
+    
+    setUser(updatedUser);
     setToken(token);
     setIsLoggedIn(true);
     
     // Set user role based on user data
-    if (userData && userData.role) {
-      setUserRole(userData.role as UserRole);
+    if (updatedUser && updatedUser.role) {
+      setUserRole(updatedUser.role as UserRole);
     }
     
     // Set approval status
-    setIsApproved(userData.approvalStatus === ApprovalStatus.APPROVED || userData.role === UserRole.DONOR);
+    setIsApproved(updatedUser.approvalStatus === ApprovalStatus.APPROVED || updatedUser.role === UserRole.DONOR);
     
     // Set profile completion status
-    setProfileComplete(userData.profileComplete || false);
+    setProfileComplete(updatedUser.profileComplete || false);
     
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const logout = () => {

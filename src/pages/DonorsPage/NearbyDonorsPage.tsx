@@ -10,7 +10,7 @@ import { DisplayMap, type MapPoint } from '../../components/map';
 import { dbDonorToMapPoint } from '../../components/map/mapUtils';
 import { useGlobalToast } from '../../components/layout/ToastContext';
 import type { Donor } from './types';
-import { InputNumber } from 'primereact/inputNumber';
+import { InputNumber } from 'primereact/inputnumber';
 // Import blood bank and medical institution APIs and types
 import { useBloodBanks } from '../../state/bloodBanks';
 import { useMedicalInstitutions } from '../MedicalInstitutionsPage/api';

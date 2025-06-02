@@ -9,23 +9,25 @@ import { useNavigate } from "react-router-dom";
 import { useSignup } from "../state/auth";
 import { useAuth } from "../state/authContext";
 import { UserRole } from "../state/auth";
+import { extractErrorMessage } from "../utils/errorHandling";
 
 const SignupPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
   const signupMutation = useSignup();
   const navigate = useNavigate();
   const { login } = useAuth();
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
     setSignupError(null);
     
-    if (email && password && confirmPassword) {
+    if (email && password && confirmPassword && name && phoneNumber) {
       if (password !== confirmPassword) {
         setSignupError("Passwords do not match");
         return;
@@ -35,12 +37,14 @@ const SignupPage: React.FC = () => {
         const data = await signupMutation.mutateAsync({
           email,
           password,
-          role: UserRole.DONOR
-        });
-        login(data.user, data.access_token);
+          role: UserRole.DONOR,
+          name,
+          phoneNumber        });
+        await login(data.user, data.access_token);
         navigate('/');
       } catch (err: any) {
-        setSignupError(err?.response?.data?.message || "Signup failed");
+        const errorMessage = extractErrorMessage(err);
+        setSignupError(errorMessage);
       }
     }
   };
@@ -55,9 +59,22 @@ const SignupPage: React.FC = () => {
       </div>
       <h2 className="text-center text-primary font-bold mb-5">
         Join BloodNet as a Donor
-      </h2>
+      </h2>      <form onSubmit={handleSignup} className="p-fluid">
+        <div className="field mb-4">
+          <span className="p-float-label">
+            <InputText
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={classNames({ "p-invalid": submitted && !name })}
+            />
+            <label htmlFor="name">Full Name*</label>
+          </span>
+          {submitted && !name && (
+            <small className="p-error">Full name is required.</small>
+          )}
+        </div>
 
-      <form onSubmit={handleSignup} className="p-fluid">
         <div className="field mb-4">
           <span className="p-float-label p-input-icon-right">
             <i className="pi pi-envelope pl-2" />
@@ -74,6 +91,21 @@ const SignupPage: React.FC = () => {
           </span>
           {submitted && !email && (
             <small className="p-error">Email is required.</small>
+          )}
+        </div>
+
+        <div className="field mb-4">
+          <span className="p-float-label">
+            <InputText
+              id="phoneNumber"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className={classNames({ "p-invalid": submitted && !phoneNumber })}
+            />
+            <label htmlFor="phoneNumber">Phone Number*</label>
+          </span>
+          {submitted && !phoneNumber && (
+            <small className="p-error">Phone number is required.</small>
           )}
         </div>
 

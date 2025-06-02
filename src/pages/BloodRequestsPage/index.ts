@@ -8,6 +8,5 @@ export { default as BloodRequestForm } from './BloodRequestForm';
 export { default as CreateBloodRequestDialog } from './CreateBloodRequestDialog';
 export { default as EditBloodRequestForm } from './EditBloodRequestForm';
 export { default as BloodRequestsRoutes } from './BloodRequestsRoutes';
-export { default as LocationPicker } from './LocationPicker';
 export * from './types';
 export * from './api';

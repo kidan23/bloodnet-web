@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import HomePage from "./pages/HomePage";
+import RoleBasedHomePage from "./components/RoleBasedHomePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ApplyPage from "./pages/ApplyPage";
@@ -20,6 +20,12 @@ import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import PreferencesPage from "./pages/PreferencesPage";
+import MyDonationsPage from "./pages/MyDonationsPage";
+import NearbyBloodBanksPage from "./pages/NearbyBloodBanksPage";
+import DonationSchedulePage from "./pages/DonationSchedulePage";
+import MyStatisticsPage from "./pages/MyStatisticsPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import DonorSettingsPage from "./pages/DonorSettingsPage";
 
 const App: React.FC = () => {
   const { isLoggedIn } = useAuth();
@@ -35,7 +41,7 @@ const App: React.FC = () => {
                 element={
                   <ApprovalStatusChecker>
                     <ProfileCompletionChecker>
-                      <HomePage />
+                      <RoleBasedHomePage />
                     </ProfileCompletionChecker>
                   </ApprovalStatusChecker>
                 }
@@ -45,7 +51,7 @@ const App: React.FC = () => {
                 element={
                   <ApprovalStatusChecker>
                     <ProfileCompletionChecker>
-                      <HomePage />
+                      <RoleBasedHomePage />
                     </ProfileCompletionChecker>
                   </ApprovalStatusChecker>
                 }
@@ -134,6 +140,79 @@ const App: React.FC = () => {
                   </ApprovalStatusChecker>
                 }
               />
+              {/* Donor-specific routes */}
+              <Route
+                path="/my-donations"
+                element={
+                  <ApprovalStatusChecker>
+                    <ProfileCompletionChecker>
+                      <RoleBasedAccess allowedRoles={[UserRole.DONOR]}>
+                        <MyDonationsPage />
+                      </RoleBasedAccess>
+                    </ProfileCompletionChecker>
+                  </ApprovalStatusChecker>
+                }
+              />
+              <Route
+                path="/nearby-blood-banks"
+                element={
+                  <ApprovalStatusChecker>
+                    <ProfileCompletionChecker>
+                      <RoleBasedAccess allowedRoles={[UserRole.DONOR]}>
+                        <NearbyBloodBanksPage />
+                      </RoleBasedAccess>
+                    </ProfileCompletionChecker>
+                  </ApprovalStatusChecker>
+                }
+              />
+              <Route
+                path="/donation-schedule"
+                element={
+                  <ApprovalStatusChecker>
+                    <ProfileCompletionChecker>
+                      <RoleBasedAccess allowedRoles={[UserRole.DONOR]}>
+                        <DonationSchedulePage />
+                      </RoleBasedAccess>
+                    </ProfileCompletionChecker>
+                  </ApprovalStatusChecker>
+                }
+              />
+              <Route
+                path="/my-stats"
+                element={
+                  <ApprovalStatusChecker>
+                    <ProfileCompletionChecker>
+                      <RoleBasedAccess allowedRoles={[UserRole.DONOR]}>
+                        <MyStatisticsPage />
+                      </RoleBasedAccess>
+                    </ProfileCompletionChecker>
+                  </ApprovalStatusChecker>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ApprovalStatusChecker>
+                    <ProfileCompletionChecker>
+                      <RoleBasedAccess allowedRoles={[UserRole.DONOR]}>
+                        <NotificationsPage />
+                      </RoleBasedAccess>
+                    </ProfileCompletionChecker>
+                  </ApprovalStatusChecker>
+                }
+              />
+              <Route
+                path="/donor-settings"
+                element={
+                  <ApprovalStatusChecker>
+                    <ProfileCompletionChecker>
+                      <RoleBasedAccess allowedRoles={[UserRole.DONOR]}>
+                        <DonorSettingsPage />
+                      </RoleBasedAccess>
+                    </ProfileCompletionChecker>
+                  </ApprovalStatusChecker>
+                }
+              />
             </>
           ) : (
             <Route index element={<LoginPage />} />
@@ -159,10 +238,8 @@ const App: React.FC = () => {
             isLoggedIn ? (
               <Navigate to="/" replace />
             ) : (
-              <div className="min-h-screen flex align-items-center justify-content-center surface-ground p-4">
-                <div className="w-4">
-                  <SignupPage />
-                </div>
+              <div className="w-full flex justify-content-center align-items-center my-5">
+                <SignupPage />
               </div>
             )
           }
@@ -170,17 +247,7 @@ const App: React.FC = () => {
 
         <Route
           path="/apply"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/" replace />
-            ) : (
-              <div className="min-h-screen flex align-items-center justify-content-center surface-ground p-4">
-                <div className="w-8">
-                  <ApplyPage />
-                </div>
-              </div>
-            )
-          }
+          element={isLoggedIn ? <Navigate to="/" replace /> : <ApplyPage />}
         />
 
         <Route

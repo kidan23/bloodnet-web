@@ -55,7 +55,7 @@ const BloodRequestsList: React.FC = () => {
   };
 
   const renderRequestCard = (request: BloodRequest) => (
-    <div className="col-12 md:col-6 lg:col-4" key={request.id}>
+    <div className="col-12 md:col-6 lg:col-4 m-3" key={request._id}>
       <BloodRequestCard bloodRequest={request} />
     </div>
   );

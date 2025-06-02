@@ -9,6 +9,7 @@ import type {
   RequestStatus,
   NearbySearchParams,
 } from "./types";
+import { notificationsService } from "../../services/notificationsService";
 
 // Base API endpoint for blood requests
 const BLOOD_REQUEST_API = "/blood-requests";
@@ -32,6 +33,24 @@ export async function createBloodRequest(
   requestData: CreateBloodRequestDto
 ): Promise<BloodRequest> {
   const { data } = await api.post(BLOOD_REQUEST_API, requestData);
+
+  // Notify donors and blood banks about the new blood request
+  await notificationsService.notifyBloodRequestToDonors(
+    data.id,
+    String(requestData.bloodType ?? ""),
+    requestData.location ?? "",
+    String(requestData.priority ?? ""),
+    requestData.eligibleDonorIds ?? []
+  );
+
+  await notificationsService.notifyBloodRequestToBloodBanks(
+    data.id,
+    String(requestData.bloodType ?? ""),
+    requestData.location ?? "",
+    String(requestData.priority ?? ""),
+    requestData.nearbyBloodBankIds ?? []
+  );
+
   return data;
 }
 
@@ -41,6 +60,24 @@ export async function updateBloodRequest(
   requestData: UpdateBloodRequestDto
 ): Promise<BloodRequest> {
   const { data } = await api.patch(`${BLOOD_REQUEST_API}/${id}`, requestData);
+
+  // Notify donors and blood banks about the updated blood request
+  await notificationsService.notifyBloodRequestToDonors(
+    id,
+    String(requestData.bloodType ?? ""),
+    requestData.location ?? "",
+    String(requestData.priority ?? ""),
+    requestData.eligibleDonorIds ?? []
+  );
+
+  await notificationsService.notifyBloodRequestToBloodBanks(
+    id,
+    String(requestData.bloodType ?? ""),
+    requestData.location ?? "",
+    String(requestData.priority ?? ""),
+    requestData.nearbyBloodBankIds ?? []
+  );
+
   return data;
 }
 

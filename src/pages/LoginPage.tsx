@@ -22,10 +22,9 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setSubmitted(true);
     setLoginError(null);
-    if (email && password) {
-      try {
+    if (email && password) {      try {
         const data = await loginMutation.mutateAsync({ email, password });
-        login(data.user, data.access_token);
+        await login(data.user, data.access_token);
       } catch (err: any) {
         setLoginError(err?.response?.data?.message || "Login failed");
       }

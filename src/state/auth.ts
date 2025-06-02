@@ -43,6 +43,8 @@ export interface SignupPayload {
   email: string;
   password: string;
   role: UserRole;
+  name: string;
+  phoneNumber: string;
 }
 
 export interface ApplyPayload {
@@ -67,7 +69,7 @@ export function useLogin() {
 export function useSignup() {
   return useMutation<LoginResponse, Error, SignupPayload>({
     mutationFn: async (payload: SignupPayload) => {
-      const { data } = await api.post('/auth/signup', payload);
+      const { data } = await api.post('/auth/register', payload);
       return data;
     },
   });

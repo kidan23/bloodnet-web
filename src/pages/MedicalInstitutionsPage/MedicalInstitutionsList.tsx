@@ -136,13 +136,13 @@ const MedicalInstitutionsList: React.FC = () => {
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex-grow-1">
           <span className="p-input-icon-left w-full">
-            <i className="pi pi-search" />
+            <i className="pi pi-search pl-2" />
             <InputText
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search by name"
-              className="w-full"
+              className="w-full pl-5"
             />
           </span>
         </div>

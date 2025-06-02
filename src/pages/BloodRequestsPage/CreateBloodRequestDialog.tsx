@@ -3,19 +3,22 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { InputNumber } from "primereact/inputNumber";
+import { InputNumber } from "primereact/inputnumber";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Checkbox } from "primereact/checkbox";
 import { useCreateBloodRequest } from "../../state/bloodRequests";
 import { extractErrorForToast } from "../../utils/errorHandling";
-import { type CreateBloodRequestDto, RequestPriority, BloodTypeEnum } from "./types";
+import {
+  type CreateBloodRequestDto,
+  RequestPriority,
+  BloodTypeEnum,
+} from "./types";
 import { useGlobalToast } from "../../components/layout/ToastContext";
-import type { CheckboxChangeEvent } from "primereact/checkbox";
+import { InteractiveMap } from "../../components/map";
 
 import api from "../../state/api";
-import LocationPicker from "./LocationPicker";
 
 interface CreateBloodRequestDialogProps {
   visible: boolean;
@@ -51,9 +54,10 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
     setLoading(true);
     try {
       const { data } = await api.get("/medical-institutions");
-      setInstitutions(data.results || []);    } catch (error) {
+      setInstitutions(data.results || []);
+    } catch (error) {
       console.error("Failed to fetch institutions:", error);
-      
+
       const { summary, detail } = extractErrorForToast(error);
       toast?.show({
         severity: "error",
@@ -61,14 +65,14 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
         detail,
         life: 5000,
       });
-      
+
       // Mock data for demo purposes
       setInstitutions([
         { id: "1", name: "City General Hospital" },
         { id: "2", name: "Memorial Medical Center" },
         { id: "3", name: "University Health System" },
       ]);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -114,9 +118,10 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
       });
     }
   };
-
   const handleDropdownChange = (e: { value: any }, field: string) => {
+    // Simply store the value for all fields (institution value should already be the ID)
     setFormData((prev) => ({ ...prev, [field]: e.value }));
+    
     // Clear error when field is edited
     if (errors[field]) {
       setErrors((prev) => {
@@ -127,9 +132,33 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
     }
   };
 
-  const handleCheckboxChange = (e: CheckboxChangeEvent, field: string) => {
-    setFormData((prev) => ({ ...prev, [field]: e.checked ?? false }));
-  };
+  // Checkbox handler for notifyNearbyDonors
+  const handleCheckboxChange = (e: any, field: string) => {
+    setFormData((prev) => ({ ...prev, [field]: !!e.checked }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };  // Only allow valid priorities in the dropdown
+  const priorityOptions = [
+    { label: "Low", value: RequestPriority.LOW },
+    { label: "Medium", value: RequestPriority.MEDIUM },
+    { label: "High", value: RequestPriority.HIGH },
+    { label: "Critical", value: RequestPriority.CRITICAL },
+  ];
+
+  const bloodTypeOptions = Object.values(BloodTypeEnum).map((type) => ({
+    label: type,
+    value: type,
+  }));
+
+  const rhFactorOptions = [
+    { label: "+", value: "+" },
+    { label: "-", value: "-" },
+  ];
 
   // Validate the form
   const validateForm = () => {
@@ -176,7 +205,6 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -190,23 +218,30 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
       return;
     }
 
+    // Clone and prepare the data for submission
+    const payload = { ...formData };
+    
+    console.log("Form submission payload:", payload);
+    
     try {
-      await createMutation.mutateAsync(formData as CreateBloodRequestDto);
+      await createMutation.mutateAsync(payload as CreateBloodRequestDto);
       toast.current?.show({
         severity: "success",
         summary: "Success",
         detail: "Blood request created successfully",
         life: 3000,
-      });      resetForm();
+      });
+      resetForm();
       onHide();
     } catch (error) {
       const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
-        severity: "error",
+        severity: "error", 
         summary,
         detail,
         life: 5000,
       });
+      console.error("Request failed:", error);
     }
   };
 
@@ -219,25 +254,10 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
     });
     setErrors({});
   };
-
-  const bloodTypeOptions = Object.values(BloodTypeEnum).map((type) => ({
-    label: type,
-    value: type,
-  }));
-
-  const rhFactorOptions = [
-    { label: "+", value: "+" },
-    { label: "-", value: "-" },
-  ];
-
-  const priorityOptions = Object.values(RequestPriority).map((priority) => ({
-    label: priority.charAt(0).toUpperCase() + priority.slice(1),
-    value: priority,
-  }));
-
+  // Map institutions array to dropdown options with proper value = ID
   const institutionOptions = institutions.map((inst) => ({
     label: inst.name,
-    value: inst.id,
+    value: inst._id, // Ensure the value is the MongoDB ID
   }));
 
   return (
@@ -253,8 +273,7 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
       className="p-fluid"
     >
       <form onSubmit={handleSubmit}>
-        <div className="grid">
-          <div className="col-12 field">
+        <div className="grid">          <div className="col-12 field">
             <label htmlFor="institution">Medical Institution*</label>
             <Dropdown
               id="institution"
@@ -266,6 +285,8 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
               className={errors.institution ? "p-invalid" : ""}
               disabled={loading}
               filter
+              optionLabel="label"
+              optionValue="value"
             />
             {errors.institution && (
               <small className="p-error">{errors.institution}</small>
@@ -350,10 +371,23 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
           </div>
           <div className="col-12 field">
             <label htmlFor="coordinates">Location*</label>
-            <LocationPicker
-              coordinates={formData.coordinates || [0, 0]}
-              onChange={(coords) => {
-                setFormData((prev) => ({ ...prev, coordinates: coords }));
+            <InteractiveMap
+              initialMarkerPosition={
+                formData.coordinates
+                  ? {
+                      lat: formData.coordinates[0],
+                      lng: formData.coordinates[1],
+                    }
+                  : {
+                      lat: 13.5169,
+                      lng: 39.45389,
+                    }
+              }
+              onLocationChange={(loc) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  coordinates: [loc.lat, loc.lng],
+                }));
                 if (errors.coordinates) {
                   setErrors((prev) => {
                     const newErrors = { ...prev };
@@ -362,8 +396,18 @@ const CreateBloodRequestDialog: React.FC<CreateBloodRequestDialogProps> = ({
                   });
                 }
               }}
-              error={errors.coordinates}
+              height="300px"
+              width="100%"
+              showHints={true}
+              showCoordinatesDisplay={true}
+              draggableMarker={true}
+              showLocationButton={true}
+              showResetButton={true}
+              className={errors.coordinates ? "p-invalid" : ""}
             />
+            {errors.coordinates && (
+              <small className="p-error">{errors.coordinates}</small>
+            )}
           </div>
 
           <div className="col-12 field">

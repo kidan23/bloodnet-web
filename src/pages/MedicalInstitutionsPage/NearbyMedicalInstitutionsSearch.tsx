@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from 'primereact/button';
-import { InputNumber } from 'primereact/inputNumber';
+import { InputNumber } from 'primereact/inputnumber';
 import { Toast } from 'primereact/toast';
 import { Card } from 'primereact/card';
 import { useNearbyMedicalInstitutions } from './api';

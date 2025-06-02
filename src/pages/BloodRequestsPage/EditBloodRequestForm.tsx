@@ -4,7 +4,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { InputNumber } from "primereact/inputNumber";
+import { InputNumber } from "primereact/inputnumber";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { InputTextarea } from "primereact/inputtextarea";
@@ -22,9 +22,8 @@ import {
 } from "./types";
 import { useGlobalToast } from "../../components/layout/ToastContext";
 import api from "../../state/api";
-import LocationPicker from "./LocationPicker";
-  import type { CheckboxChangeEvent } from "primereact/checkbox";
-
+import { InteractiveMap } from "../../components/map";
+import type { CheckboxChangeEvent } from "primereact/checkbox";
 
 const EditBloodRequestForm: React.FC = () => {
   const { id = "" } = useParams<{ id: string }>();
@@ -74,9 +73,10 @@ const EditBloodRequestForm: React.FC = () => {
     setLoading(true);
     try {
       const { data } = await api.get("/medical-institutions");
-      setInstitutions(data.results || []);    } catch (error) {
+      setInstitutions(data.results || []);
+    } catch (error) {
       console.error("Failed to fetch institutions:", error);
-      
+
       const { summary, detail } = extractErrorForToast(error);
       toast.current?.show({
         severity: "error",
@@ -84,14 +84,14 @@ const EditBloodRequestForm: React.FC = () => {
         detail,
         life: 5000,
       });
-      
+
       // Mock data for demo purposes
       setInstitutions([
         { id: "1", name: "City General Hospital" },
         { id: "2", name: "Memorial Medical Center" },
         { id: "3", name: "University Health System" },
       ]);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -390,10 +390,10 @@ const EditBloodRequestForm: React.FC = () => {
 
             <div className="col-12 field">
               <label htmlFor="coordinates">Location</label>
-              <LocationPicker
-                coordinates={formData.coordinates || [0, 0]}
-                onChange={(coords) => {
-                  setFormData((prev) => ({ ...prev, coordinates: coords }));
+              <InteractiveMap
+                initialMarkerPosition={formData.coordinates ? { lat: formData.coordinates[0], lng: formData.coordinates[1] } : undefined}
+                onLocationChange={(loc) => {
+                  setFormData((prev) => ({ ...prev, coordinates: [loc.lat, loc.lng] }));
                   if (errors.coordinates) {
                     setErrors((prev) => {
                       const newErrors = { ...prev };
@@ -402,8 +402,18 @@ const EditBloodRequestForm: React.FC = () => {
                     });
                   }
                 }}
-                error={errors.coordinates}
+                height="300px"
+                width="100%"
+                showHints={true}
+                showCoordinatesDisplay={true}
+                draggableMarker={true}
+                showLocationButton={true}
+                showResetButton={true}
+                className={errors.coordinates ? "p-invalid" : ""}
               />
+              {errors.coordinates && (
+                <small className="p-error">{errors.coordinates}</small>
+              )}
             </div>
 
             <div className="col-12 field">

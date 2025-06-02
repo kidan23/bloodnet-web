@@ -15,11 +15,11 @@ export enum RequestPriority {
   LOW = "low",
   MEDIUM = "medium",
   HIGH = "high",
-  URGENT = "urgent",
+  CRITICAL = "critical",
 }
 
 export interface BloodRequest {
-  id: string;
+  _id: string;
   institution: {
     id: string;
     name: string;
@@ -52,6 +52,9 @@ export interface CreateBloodRequestDto {
   coordinates: [number, number]; // [longitude, latitude]
   notifyNearbyDonors?: boolean;
   notificationRadius?: number;
+  location: string; // Location of the blood request
+  eligibleDonorIds: string[]; // IDs of eligible donors
+  nearbyBloodBankIds: string[]; // IDs of nearby blood banks
 }
 
 export interface UpdateBloodRequestDto extends Partial<CreateBloodRequestDto> {

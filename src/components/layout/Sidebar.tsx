@@ -25,13 +25,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  Bell,
 } from "lucide-react";
+import { notificationsService } from "../../services/notificationsService";
 
 interface MenuItem {
   label: string;
   icon: string;
   to: string;
   items?: MenuItem[];
+  badge?: number;
 }
 
 interface SidebarProps {
@@ -63,6 +66,7 @@ const renderIcon = (
     ChevronLeft,
     ChevronRight,
     ChevronDown,
+    Bell,
   };
 
   const IconComponent = iconMap[iconName];
@@ -74,9 +78,11 @@ const renderIcon = (
 const Sidebar: React.FC<SidebarProps> = ({
   collapsed = false,
   onToggle = () => {},
-}) => {  const location = useLocation();
+}) => {
+  const location = useLocation();
   const { userRole, user } = useAuth();
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Close overlay when clicking outside
@@ -95,6 +101,19 @@ const Sidebar: React.FC<SidebarProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [activeSubmenu]);
+
+  // Fetch unread notification count
+  useEffect(() => {
+    async function fetchCount() {
+      try {
+        const count = await notificationsService.fetchUnreadCount();
+        setNotificationCount(count);
+      } catch (e) {
+        setNotificationCount(0);
+      }
+    }
+    fetchCount();
+  }, []);
 
   // Create refs for submenu items
   const donationsMenuRef = useRef(null);
@@ -186,6 +205,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     });
   }
 
+  // Add notifications menu item for donors
+  if (userRole === UserRole.DONOR) {
+    menuItems.splice(1, 0, {
+      label: "Notifications",
+      icon: "Bell",
+      to: "/notifications",
+      badge: notificationCount > 0 ? notificationCount : undefined,
+    });
+  }
+
   // Helper function to get overlay ref for a menu item
   const getOverlayRef = (label: string) => {
     switch (label) {
@@ -197,7 +226,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         return adminOverlayRef;
       default:
         return null;
-    }  }; 
+    }
+  };
 
   // Helper function to handle submenu click when collapsed
   const handleSubmenuClick = (event: React.MouseEvent, item: MenuItem) => {
@@ -229,7 +259,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       overlayRef?.current?.hide();
       setActiveSubmenu(null);
     }
-  };  return (
+  };
+
+  return (
     <div
       ref={sidebarRef}
       className={`flex-shrink-0 select-none transition-all transition-duration-300 relative ${
@@ -331,7 +363,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 ) : item.items && collapsed ? (
                   // Collapsed submenu with overlay
                   <>
-                    {" "}                    <div
+                    {" "}
+                    <div
                       className={`p-ripple flex align-items-center cursor-pointer border-round transition-duration-150 transition-colors w-full justify-content-center p-3 text-xl text-700 hover:surface-100`}
                       title={item.label}
                       onClick={(e) => handleSubmenuClick(e, item)}
@@ -339,7 +372,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     >
                       {renderIcon(item.icon, "", 24)}
                       <Ripple />
-                    </div>{" "}                    <OverlayPanel
+                    </div>{" "}
+                    <OverlayPanel
                       ref={getOverlayRef(item.label)}
                       className="w-auto"
                       style={{ minWidth: "200px" }}
@@ -356,7 +390,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                               location.pathname === child.to
                                 ? "bg-primary text-white"
                                 : "text-700 hover:surface-100"
-                            }`}                            onClick={() => {
+                            }`}
+                            onClick={() => {
                               const overlayRef = getOverlayRef(item.label);
                               overlayRef?.current?.hide();
                               setActiveSubmenu(null);
@@ -390,6 +425,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                     )}
                     {!collapsed && (
                       <span className="font-medium">{item.label}</span>
+                    )}
+                    {item.label === "Notifications" && notificationCount > 0 && (
+                      <span className="p-badge p-badge-danger ml-2">
+                        {notificationCount}
+                      </span>
                     )}
                     <Ripple />
                   </Link>

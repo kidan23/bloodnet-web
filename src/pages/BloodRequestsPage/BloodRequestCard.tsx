@@ -20,8 +20,8 @@ const BloodRequestCard: React.FC<BloodRequestCardProps> = ({
 
   const getPriorityTag = (priority: RequestPriority) => {
     switch (priority) {
-      case RequestPriority.URGENT:
-        return <Tag value="URGENT" severity="danger" />;
+      case RequestPriority.CRITICAL:
+        return <Tag value="CRITICAL" severity="danger" />;
       case RequestPriority.HIGH:
         return <Tag value="HIGH" severity="warning" />;
       case RequestPriority.MEDIUM:
@@ -65,7 +65,7 @@ const BloodRequestCard: React.FC<BloodRequestCardProps> = ({
       className="mb-3 flex flex-column justify-between h-full"
       footer={
         <div className="flex justify-end mt-3">
-          <Link to={`/blood-requests/${bloodRequest.id}`}>
+          <Link to={`/blood-requests/${bloodRequest._id}`}>
             <Button label="View Details" icon="pi pi-search" className="sm" />
           </Link>
         </div>

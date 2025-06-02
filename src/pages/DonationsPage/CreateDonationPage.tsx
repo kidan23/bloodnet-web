@@ -3,7 +3,7 @@ import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
-import { InputNumber } from "primereact/inputNumber";
+import { InputNumber } from "primereact/inputnumber";
 import { Checkbox } from "primereact/checkbox";
 import { Button } from "primereact/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ import {
 } from "./constants";
 import type { CreateDonationDto } from "./types";
 import { extractErrorForToast } from "../../utils/errorHandling";
+import { notificationsService } from "../../services/notificationsService";
 
 // Component for creating new donation records
 const CreateDonationPage: React.FC = () => {
@@ -107,6 +108,14 @@ const CreateDonationPage: React.FC = () => {
 
     try {
       await createDonationMutation.mutateAsync(donationData);
+
+      // Notify donor that donation result is ready (simulate result ready for demo)
+      await notificationsService.notifyDonationResultReady(
+        donationData.donor,
+        "new-donation-id", // Replace with actual ID if available
+        new Date(), // Use current date for result ready
+        donationData.bloodBank
+      );
 
       toast.current?.show({
         severity: "success",
