@@ -46,7 +46,7 @@ const CreateScheduleForm: React.FC<CreateScheduleFormProps> = ({
 
   const [formData, setFormData] = useState<CreateDonationScheduleDto>({
     ...DEFAULT_SCHEDULE_FORM,
-    donor: donorId || "",
+    donor: user?.donorId || "",
     bloodBank: bloodBankId || "",
     scheduledBy: user?._id,
   });
@@ -72,14 +72,14 @@ const CreateScheduleForm: React.FC<CreateScheduleFormProps> = ({
     if (visible) {
       setFormData({
         ...DEFAULT_SCHEDULE_FORM,
-        donor: donorId || "",
+        donor: user?.donorId || "",
         bloodBank: bloodBankId || "",
         scheduledBy: user?._id,
       });
       setErrors({});
       setSubmitted(false);
     }
-  }, [visible, donorId, bloodBankId, user]);
+  }, [visible, bloodBankId, user]);
 
   const bloodBankOptions =
     bloodBanksData?.results?.map((bank) => ({
@@ -197,6 +197,7 @@ const CreateScheduleForm: React.FC<CreateScheduleFormProps> = ({
           </div>
 
           {/* Donor Selection */}
+          {/*
           <div className="col-12 md:col-6">
             <label className="block mb-2 font-semibold">
               Donor <span className="text-red-500">*</span>
@@ -213,6 +214,7 @@ const CreateScheduleForm: React.FC<CreateScheduleFormProps> = ({
             />
             {errors.donor && <small className="p-error">{errors.donor}</small>}
           </div>
+          */}
 
           {/* Blood Bank Selection */}
           <div className="col-12 md:col-6">

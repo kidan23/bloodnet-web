@@ -1,18 +1,18 @@
-import { useMutation } from '@tanstack/react-query';
-import api from './api';
+import { useMutation } from "@tanstack/react-query";
+import api from "./api";
 
 export enum UserRole {
-  DONOR = 'donor',
-  HOSPITAL = 'hospital',
-  BLOOD_BANK = 'blood_bank',
-  MEDICAL_INSTITUTION = 'medical_institution',
-  ADMIN = 'admin',
+  DONOR = "donor",
+  HOSPITAL = "hospital",
+  BLOOD_BANK = "blood_bank",
+  MEDICAL_INSTITUTION = "medical_institution",
+  ADMIN = "admin",
 }
 
 export enum ApprovalStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
 }
 
 export interface User {
@@ -25,6 +25,9 @@ export interface User {
   donorProfile?: string; // Reference to Donor document
   bloodBankProfile?: string; // Reference to BloodBank document
   medicalInstitutionProfile?: string; // Reference to MedicalInstitution document
+  donorId: string;
+  institutionId: string; // For hospitals and blood banks
+  bloodBankId: string; // For donors;
   createdAt: string;
   updatedAt: string;
 }
@@ -69,7 +72,7 @@ export function useLogin() {
 export function useSignup() {
   return useMutation<LoginResponse, Error, SignupPayload>({
     mutationFn: async (payload: SignupPayload) => {
-      const { data } = await api.post('/auth/register', payload);
+      const { data } = await api.post("/auth/register", payload);
       return data;
     },
   });
@@ -78,16 +81,19 @@ export function useSignup() {
 export function useApply() {
   return useMutation<{ message: string }, Error, ApplyPayload>({
     mutationFn: async (payload: ApplyPayload) => {
-      const { data } = await api.post('/applications', payload);
+      const { data } = await api.post("/applications", payload);
       return data;
     },
   });
 }
 
 export function useCheckProfileComplete() {
-  return useMutation<{ profileComplete: boolean; missingProfile: string | null }, Error>({
+  return useMutation<
+    { profileComplete: boolean; missingProfile: string | null },
+    Error
+  >({
     mutationFn: async () => {
-      const { data } = await api.get('/auth/profile-status');
+      const { data } = await api.get("/auth/profile-status");
       return data;
     },
   });

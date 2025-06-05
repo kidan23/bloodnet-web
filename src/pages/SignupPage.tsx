@@ -26,22 +26,22 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     setSubmitted(true);
     setSignupError(null);
-    
+
     if (email && password && confirmPassword && name && phoneNumber) {
       if (password !== confirmPassword) {
         setSignupError("Passwords do not match");
         return;
       }
-      
+
       try {
         const data = await signupMutation.mutateAsync({
           email,
           password,
           role: UserRole.DONOR,
           name,
-          phoneNumber        });
-        await login(data.user, data.access_token);
-        navigate('/');
+          phoneNumber,
+        });
+        navigate("/");
       } catch (err: any) {
         const errorMessage = extractErrorMessage(err);
         setSignupError(errorMessage);
@@ -59,7 +59,8 @@ const SignupPage: React.FC = () => {
       </div>
       <h2 className="text-center text-primary font-bold mb-5">
         Join BloodNet as a Donor
-      </h2>      <form onSubmit={handleSignup} className="p-fluid">
+      </h2>{" "}
+      <form onSubmit={handleSignup} className="p-fluid">
         <div className="field mb-4">
           <span className="p-float-label">
             <InputText
@@ -87,7 +88,9 @@ const SignupPage: React.FC = () => {
                 "pl-5"
               )}
             />
-            <label htmlFor="email" className="pl-4">Email*</label>
+            <label htmlFor="email" className="pl-4">
+              Email*
+            </label>
           </span>
           {submitted && !email && (
             <small className="p-error">Email is required.</small>
@@ -133,7 +136,9 @@ const SignupPage: React.FC = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               toggleMask
               feedback={false}
-              className={classNames({ "p-invalid": submitted && !confirmPassword })}
+              className={classNames({
+                "p-invalid": submitted && !confirmPassword,
+              })}
             />
             <label htmlFor="confirmPassword">Confirm Password*</label>
           </span>
@@ -142,27 +147,27 @@ const SignupPage: React.FC = () => {
           )}
         </div>
 
-        {signupError && <small className="p-error mb-3 block">{signupError}</small>}
+        {signupError && (
+          <small className="p-error mb-3 block">{signupError}</small>
+        )}
 
-        <Button 
-          type="submit" 
-          label="Create Account" 
+        <Button
+          type="submit"
+          label="Create Account"
           className="mb-4"
           loading={signupMutation.isPending}
         />
       </form>
-
       <Divider align="center">
         <span className="text-600 font-normal">OR</span>
       </Divider>
-
       <div className="mt-4 text-center">
         <p className="text-600 line-height-3 mb-3">
           Already have an account?{" "}
           <Button
             link
             className="text-primary font-medium p-0"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate("/login")}
           >
             Sign In
           </Button>
@@ -172,7 +177,7 @@ const SignupPage: React.FC = () => {
           <Button
             link
             className="text-primary font-medium p-0"
-            onClick={() => navigate('/apply')}
+            onClick={() => navigate("/apply")}
           >
             Apply Here
           </Button>
