@@ -9,13 +9,29 @@ import logoPath from "../../assets/logo.png"; // Adjust the path as necessary
 
 interface TopbarProps {
   onMenuToggle: () => void;
+  isMobile?: boolean;
 }
 
-const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
+const Topbar: React.FC<TopbarProps> = ({ onMenuToggle, isMobile: propIsMobile }) => {
   const menuRef = useRef<Menu>(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState<boolean>(propIsMobile || false);
+  
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const userMenuItems = [
     {
@@ -53,11 +69,21 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuToggle }) => {
     }
     fetchCount();
   }, []);
-
   return (
-    <div className="flex justify-content-between align-items-center px-4 py-2 shadow-2 relative surface-section border-bottom-1 surface-border">
-      <div className="flex align-items-center ml-4">
-        {" "}
+    <div className="flex justify-content-between align-items-center px-4 py-2 shadow-2 relative surface-section border-bottom-1 surface-border">      <div className="flex align-items-center ml-4">
+        {/* Mobile menu toggle button */}
+        {isMobile && (
+          <Button
+            icon="pi pi-bars"
+            className="p-button-rounded p-button-text mr-2"
+            onClick={onMenuToggle}
+            aria-label="Menu"
+            style={{ 
+              fontSize: '1.25rem', 
+              color: '#3B82F6'
+            }}
+          />
+        )}
         <Link to="/" className="no-underline text-primary">
           <div className="flex align-items-center">
             <img

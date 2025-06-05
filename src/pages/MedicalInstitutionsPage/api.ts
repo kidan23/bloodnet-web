@@ -177,3 +177,34 @@ export const useDeleteMedicalInstitution = () => {
     },
   });
 };
+
+// Assign user to medical institution
+export const assignUserToMedicalInstitution = async (
+  institutionId: string,
+  user: string
+): Promise<MedicalInstitution> => {
+  const { data } = await api.patch<MedicalInstitution>(
+    `/medical-institutions/${institutionId}`,
+    { user }
+  );
+  return data;
+};
+
+// Use assign user to medical institution hook
+export const useAssignUserToMedicalInstitution = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ institutionId, userId }: { institutionId: string; userId: string }) => {
+      return assignUserToMedicalInstitution(institutionId, userId);
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: medicalInstitutionKeys.detail(variables.institutionId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: medicalInstitutionKeys.lists(),
+      });
+    },
+  });
+};

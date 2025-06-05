@@ -45,7 +45,7 @@ const DonationCard: React.FC<DonationCardProps> = ({
       <div className="flex flex-column md:flex-row justify-content-between align-items-start">
         <div className="flex-1">
           <div className="text-xl font-bold mb-2">
-            Donation {donation.id.substring(0, 8)} - {formatDate(donation.donationDate)}
+            Donation {donation._id.substring(0, 8)} - {formatDate(donation.donationDate)}
           </div>
           
           <div className="grid">
@@ -94,7 +94,7 @@ const DonationCard: React.FC<DonationCardProps> = ({
         </div>
         
         <div className="mt-3 md:mt-0">
-          <Link to={`/donations/${donation.id}`}>
+          <Link to={`/donations/${donation._id}`}>
             <Button 
               icon="pi pi-eye" 
               label="View Details" 

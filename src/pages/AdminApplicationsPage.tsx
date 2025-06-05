@@ -10,13 +10,14 @@ import { Toast } from "primereact/toast";
 import { Dropdown } from "primereact/dropdown";
 import { Divider } from "primereact/divider";
 import { useQueryClient } from "@tanstack/react-query";
-import { ApprovalStatus } from "../state/auth";
+import { ApprovalStatus, UserRole } from "../state/auth";
 import {
   useGetApplications,
   useReviewApplication,
   type PendingApplication,
 } from "../state/admin";
 import { extractErrorForToast } from "../utils/errorHandling";
+import RoleBasedAccess from "../components/RoleBasedAccess";
 
 const AdminApplicationsPage: React.FC = () => {
   const [selectedApplication, setSelectedApplication] =
@@ -246,10 +247,30 @@ const AdminApplicationsPage: React.FC = () => {
       )}
     </div>
   );
-
   return (
-    <div>
-      <Toast ref={toast} />
+    <RoleBasedAccess allowedRoles={[UserRole.ADMIN]} fallback={
+      <div style={{ 
+        textAlign: "center", 
+        padding: "3rem 2rem", 
+        backgroundColor: "#f8f9fa", 
+        borderRadius: "12px",
+        border: "1px solid #e9ecef",
+        margin: "2rem"
+      }}>
+        <i className="pi pi-lock" style={{ fontSize: "3rem", color: "#dc3545", marginBottom: "1rem" }}></i>
+        <h3 style={{ color: "#dc3545", marginBottom: "1rem" }}>Admin Access Required</h3>
+        <p style={{ color: "#6c757d", marginBottom: "2rem", fontSize: "1.1rem" }}>
+          You need administrator privileges to manage applications.
+        </p>
+        <Button 
+          label="Go Back"
+          outlined
+          onClick={() => window.history.back()}
+        />
+      </div>
+    }>
+      <div>
+        <Toast ref={toast} />
 
       <Card title="Application Management" className="mb-4">
         {" "}
@@ -448,10 +469,10 @@ const AdminApplicationsPage: React.FC = () => {
             onClick={handleReject}
             loading={rejectMutation.isPending}
             disabled={!rejectionReason.trim()}
-          />
-        </div>
+          />        </div>
       </Dialog>
     </div>
+    </RoleBasedAccess>
   );
 };
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Toolbar } from "primereact/toolbar";
 import { Button } from "primereact/button";
 import { Avatar } from "primereact/avatar";
@@ -8,10 +8,26 @@ import { useAuth } from "../../state/authContext";
 
 interface DonorTopbarProps {
   onMenuToggle: () => void;
+  isMobile?: boolean;
 }
 
 const DonorTopbar: React.FC<DonorTopbarProps> = ({ onMenuToggle }) => {
   const { user, logout } = useAuth();
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const startContent = (
     <div className="flex align-items-center gap-2">

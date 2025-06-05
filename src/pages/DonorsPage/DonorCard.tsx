@@ -15,96 +15,76 @@ const DonorCard: React.FC<DonorCardProps> = ({ donor }) => {
     return new Date(dateString).toLocaleDateString();
   };
   const bloodTypeWithRh = `${donor.bloodType}${donor.RhFactor}`;
+  const calculateAge = () => {
+    if (!donor.dateOfBirth) return "N/A";
+    const dob = new Date(donor.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    return `${age} years`;
+  };
 
   return (
-    <Card className="mb-3">
-      <div className="flex flex-column md:flex-row justify-content-between align-items-start">
-        <div className="flex-1">
-          <div className="text-xl font-bold mb-2">
+    <Card className="h-full">
+      <div className="flex flex-column h-full">
+        {/* Header with name and blood type */}
+        <div className="flex justify-content-between align-items-start mb-3">
+          <div className="text-lg font-bold text-primary">
             {donor.firstName} {donor.lastName}
           </div>
-          <div className="grid">
-            <div className="col-12 md:col-6">
-              <p className="m-0 mb-2">
-                <i className="pi pi-phone mr-2"></i>
-                {donor.phoneNumber}
-              </p>
-              {donor.email && (
-                <p className="m-0 mb-2">
-                  <i className="pi pi-envelope mr-2"></i>
-                  {donor.email}
-                </p>
-              )}
-              <p className="m-0 mb-2">
-                <i className="pi pi-calendar mr-2"></i>
-                Age:{" "}
-                {donor.dateOfBirth
-                  ? (() => {
-                      const dob = new Date(donor.dateOfBirth);
-                      const today = new Date();
-                      let age = today.getFullYear() - dob.getFullYear();
-                      const m = today.getMonth() - dob.getMonth();
-                      if (
-                        m < 0 ||
-                        (m === 0 && today.getDate() < dob.getDate())
-                      ) {
-                        age--;
-                      }
-                      // Calculate days since last birthday
-                      let lastBirthday = new Date(
-                        today.getFullYear(),
-                        dob.getMonth(),
-                        dob.getDate()
-                      );
-                      if (today < lastBirthday) {
-                        lastBirthday.setFullYear(today.getFullYear() - 1);
-                      }
-                      const diffTime = Math.abs(
-                        today.getTime() - lastBirthday.getTime()
-                      );
-                      const diffDays = Math.floor(
-                        diffTime / (1000 * 60 * 60 * 24)
-                      );
-                      return `${age} years, ${diffDays} days`;
-                    })()
-                  : "N/A"}
-              </p>
-              <p className="m-0 mb-2">
-                <i className="pi pi-map-marker mr-2"></i>
-                {donor.city
-                  ? `${donor.city}, ${donor.state || ""}`
-                  : "Location not specified"}
-              </p>
+          <Tag
+            severity="info"
+            value={bloodTypeWithRh}
+            style={{ fontSize: "0.9rem", padding: "0.25rem 0.75rem" }}
+          />
+        </div>
+
+        {/* Key info in compact format */}
+        <div className="flex-1 mb-3">
+          <div className="mb-2">
+            <i className="pi pi-phone text-600 mr-2" style={{ fontSize: "0.9rem" }}></i>
+            <span className="text-sm">{donor.phoneNumber}</span>
+          </div>
+          
+          {donor.email && (
+            <div className="mb-2">
+              <i className="pi pi-envelope text-600 mr-2" style={{ fontSize: "0.9rem" }}></i>
+              <span className="text-sm">{donor.email}</span>
             </div>
-            <div className="col-12 md:col-6">
-              <div className="mb-2">
-                <Tag
-                  severity="info"
-                  value={bloodTypeWithRh}
-                  style={{ fontSize: "1rem", padding: "0.5rem 1rem" }}
-                />
-              </div>
-              <p className="m-0 mb-2">
-                <strong>Last Donation:</strong>{" "}
-                {formatDate(donor.lastDonationDate)}
-              </p>
-              <p className="m-0 mb-2">
-                <strong>Total Donations:</strong> {donor.totalDonations || 0}
-              </p>
-              {donor.nextEligibleDate && (
-                <p className="m-0">
-                  <strong>Next Eligible Date:</strong>{" "}
-                  {formatDate(donor.nextEligibleDate)}
-                </p>
-              )}
+          )}
+          
+          <div className="mb-2">
+            <i className="pi pi-calendar text-600 mr-2" style={{ fontSize: "0.9rem" }}></i>
+            <span className="text-sm">{calculateAge()}</span>
+          </div>
+          
+          <div className="mb-2">
+            <i className="pi pi-map-marker text-600 mr-2" style={{ fontSize: "0.9rem" }}></i>
+            <span className="text-sm">
+              {donor.city ? `${donor.city}, ${donor.state || ""}` : "Location not specified"}
+            </span>
+          </div>
+          
+          <div className="mt-3 pt-2 border-top-1 surface-border">
+            <div className="text-sm text-600 mb-1">
+              <strong>Donations:</strong> {donor.totalDonations || 0}
             </div>
-          </div>        </div>
-        <div className="mt-3 md:mt-0">
-          <Link to={`/donors/${donor._id}`}>
+            <div className="text-sm text-600">
+              <strong>Last:</strong> {formatDate(donor.lastDonationDate)}
+            </div>
+          </div>
+        </div>
+
+        {/* Action button */}
+        <div className="mt-auto">
+          <Link to={`/donors/${donor._id}`} className="w-full">
             <Button
               icon="pi pi-eye"
               label="View Details"
-              className="p-button-outlined"
+              className="p-button-outlined w-full p-button-sm"
             />
           </Link>
         </div>

@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ApplyPage from "./pages/ApplyPage";
 import AdminApplicationsPage from "./pages/AdminApplicationsPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import MainLayout from "./components/layout/MainLayout";
 import ProfileCompletionChecker from "./components/ProfileCompletionChecker";
 import ApprovalStatusChecker from "./components/ApprovalStatusChecker";
@@ -127,6 +128,16 @@ const App: React.FC = () => {
                 element={
                   <ApprovalStatusChecker>
                     <PreferencesPage />
+                  </ApprovalStatusChecker>
+                }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ApprovalStatusChecker>
+                    <RoleBasedAccess allowedRoles={[UserRole.ADMIN]}>
+                      <AdminDashboardPage />
+                    </RoleBasedAccess>
                   </ApprovalStatusChecker>
                 }
               />

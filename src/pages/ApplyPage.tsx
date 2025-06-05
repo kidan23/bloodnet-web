@@ -24,7 +24,7 @@ const ApplyPage: React.FC = () => {
     organizationType: null as UserRole | null,
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   // Blood Bank specific fields
   const [bloodBankData, setBloodBankData] = useState({
@@ -41,7 +41,10 @@ const ApplyPage: React.FC = () => {
     bloodTypesAvailable: [] as string[],
     licenseNumber: "",
     establishedDate: null as Date | null,
-    location: { type: "Point" as const, coordinates: [0, 0] as [number, number] }
+    location: {
+      type: "Point" as const,
+      coordinates: [0, 0] as [number, number],
+    },
   });
 
   // Medical Institution specific fields
@@ -62,13 +65,19 @@ const ApplyPage: React.FC = () => {
     contactPersonEmail: "",
     operatingHours: [] as string[],
     services: [] as string[],
-    coordinates: [0, 0] as [number, number]  });
+    coordinates: [0, 0] as [number, number],
+  });
   const validateForm = () => {
     // Basic account validation
-    if (!accountData.email || !accountData.password || !accountData.confirmPassword || !accountData.organizationType) {
+    if (
+      !accountData.email ||
+      !accountData.password ||
+      !accountData.confirmPassword ||
+      !accountData.organizationType
+    ) {
       return false;
     }
-    
+
     if (accountData.password !== accountData.confirmPassword) {
       setApplicationError("Passwords do not match");
       return false;
@@ -76,16 +85,28 @@ const ApplyPage: React.FC = () => {
 
     // Organization-specific validation
     if (accountData.organizationType === UserRole.BLOOD_BANK) {
-      return bloodBankData.name && bloodBankData.address && bloodBankData.city && 
-             bloodBankData.state && bloodBankData.country && bloodBankData.contactNumber && 
-             bloodBankData.licenseNumber;
+      return (
+        bloodBankData.name &&
+        bloodBankData.address &&
+        bloodBankData.city &&
+        bloodBankData.state &&
+        bloodBankData.country &&
+        bloodBankData.contactNumber &&
+        bloodBankData.licenseNumber
+      );
     } else if (accountData.organizationType === UserRole.MEDICAL_INSTITUTION) {
-      return medicalInstitutionData.name && medicalInstitutionData.registrationNumber && 
-             medicalInstitutionData.type && medicalInstitutionData.phoneNumber && 
-             medicalInstitutionData.address && medicalInstitutionData.city && 
-             medicalInstitutionData.state && medicalInstitutionData.country;
+      return (
+        medicalInstitutionData.name &&
+        medicalInstitutionData.registrationNumber &&
+        medicalInstitutionData.type &&
+        medicalInstitutionData.phoneNumber &&
+        medicalInstitutionData.address &&
+        medicalInstitutionData.city &&
+        medicalInstitutionData.state &&
+        medicalInstitutionData.country
+      );
     }
-    
+
     return true;
   };
 
@@ -93,39 +114,41 @@ const ApplyPage: React.FC = () => {
     e.preventDefault();
     setSubmitted(true);
     setApplicationError(null);
-    
+
     if (!validateForm() || !accountData.organizationType) {
       return;
     }
-    
+
     let profileData;
     if (accountData.organizationType === UserRole.BLOOD_BANK) {
       profileData = {
         ...bloodBankData,
-        establishedDate: bloodBankData.establishedDate?.toISOString()
+        establishedDate: bloodBankData.establishedDate?.toISOString(),
       };
     } else {
       profileData = medicalInstitutionData;
     }
-    
+
     try {
       await applyMutation.mutateAsync({
         email: accountData.email,
         password: accountData.password,
         role: accountData.organizationType,
-        profileData
+        profileData,
       });
-      
+
       toast.current?.show({
-        severity: 'success',
-        summary: 'Application Submitted',
-        detail: 'Your application has been submitted successfully. You will receive an email once it is reviewed.',
-        life: 5000
+        severity: "success",
+        summary: "Application Submitted",
+        detail:
+          "Your application has been submitted successfully. You will receive an email once it is reviewed.",
+        life: 5000,
       });
-      
+
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);    } catch (err: any) {
+        navigate("/login");
+      }, 2000);
+    } catch (err: any) {
       const { summary, detail } = extractErrorForToast(err);
       toast.current?.show({
         severity: "error",
@@ -136,9 +159,9 @@ const ApplyPage: React.FC = () => {
     }
   };
   return (
-    <div className="flex justify-content-center">
+    <div className="flex justify-content-center mx-8 mt-8">
       <Toast ref={toast} />
-      <Card title="Apply for Organization Account" className="shadow-4 w-full max-w-6">
+      <Card title="Apply for Organization Account" className="shadow-4 ">
         <div className="flex justify-content-center mb-4">
           <i
             className="pi pi-building text-blue-500"
@@ -147,7 +170,8 @@ const ApplyPage: React.FC = () => {
         </div>
         <h2 className="text-center text-primary font-bold mb-5">
           Register Your Organization
-        </h2>        <form onSubmit={handleSubmit} className="p-fluid">
+        </h2>{" "}
+        <form onSubmit={handleSubmit} className="p-fluid">
           {/* Account Credentials Section */}
           <AccountCredentialsForm
             data={accountData}
@@ -178,30 +202,30 @@ const ApplyPage: React.FC = () => {
             </>
           )}
 
-          {applicationError && <small className="p-error mb-3 block">{applicationError}</small>}
+          {applicationError && (
+            <small className="p-error mb-3 block">{applicationError}</small>
+          )}
 
           <div className="flex justify-content-center mt-4">
-            <Button 
-              type="submit" 
-              label="Submit Application" 
+            <Button
+              type="submit"
+              label="Submit Application"
               className="w-auto"
               loading={applyMutation.isPending}
               disabled={!accountData.organizationType}
             />
           </div>
         </form>
-
         <Divider align="center" className="mt-5">
           <span className="text-600 font-normal">OR</span>
         </Divider>
-
         <div className="mt-4 text-center">
           <p className="text-600 line-height-3 mb-3">
             Already have an account?{" "}
             <Button
               link
               className="text-primary font-medium p-0"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate("/login")}
             >
               Sign In
             </Button>
@@ -211,7 +235,7 @@ const ApplyPage: React.FC = () => {
             <Button
               link
               className="text-primary font-medium p-0"
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate("/signup")}
             >
               Create Donor Account
             </Button>

@@ -6,6 +6,8 @@ import { Paginator } from 'primereact/paginator';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import { useMedicalInstitutions, useDeleteMedicalInstitution } from './api';
+import { UserRole } from '../../state/auth';
+import RoleBasedAccess from '../../components/RoleBasedAccess';
 import MedicalInstitutionCard from './MedicalInstitutionCard';
 import CreateMedicalInstitutionDialog from './CreateMedicalInstitutionDialog';
 import EditMedicalInstitutionDialog from './EditMedicalInstitutionDialog';
@@ -117,13 +119,14 @@ const MedicalInstitutionsList: React.FC = () => {
       <ConfirmDialog />
 
       <div className="flex justify-content-between align-items-center mb-4">
-        <h1 className="m-0">Medical Institutions</h1>
-        <div className="flex gap-2">
-          <Button 
-            label="Add New" 
-            icon="pi pi-plus"
-            onClick={() => setCreateDialogVisible(true)} 
-          />
+        <h1 className="m-0">Medical Institutions</h1>        <div className="flex gap-2">
+          <RoleBasedAccess allowedRoles={[UserRole.ADMIN]}>
+            <Button 
+              label="Add New" 
+              icon="pi pi-plus"
+              onClick={() => setCreateDialogVisible(true)} 
+            />
+          </RoleBasedAccess>
           <Button
             label="Nearby Search"
             icon="pi pi-map-marker"

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "primereact/button";
-import { Card } from "primereact/card";
-import { DataView } from "primereact/dataview";
 import { Paginator } from "primereact/paginator";
 import { InputText } from "primereact/inputtext";
 import {
@@ -10,8 +8,11 @@ import {
   useSearchBloodBanksByName,
   useSearchBloodBanksByCity,
 } from "../../state/bloodBanks";
+import { UserRole } from "../../state/auth";
+import RoleBasedAccess from "../../components/RoleBasedAccess";
 import type { BloodBank, BloodBankQueryParams } from "./types";
 import CreateBloodBankForm from "./CreateBloodBankForm";
+import BloodBankCard from "./BloodBankCard";
 
 const BloodBanksList: React.FC = () => {
   const [queryParams, setQueryParams] = useState<BloodBankQueryParams>({
@@ -22,7 +23,6 @@ const BloodBanksList: React.FC = () => {
     "none"
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [layout] = useState<"grid" | "list">("grid");
   const [dialogVisible, setDialogVisible] = useState(false);
 
   const { data, isLoading, isError, error } = useBloodBanks(
@@ -65,42 +65,9 @@ const BloodBanksList: React.FC = () => {
 
   const hideCreateDialog = () => {
     setDialogVisible(false);
-  };
-
-  const renderBankCard = (bank: BloodBank) => (
-    <div className="col-12 md-6 lg-4" key={bank._id}>
-      <Card
-        title={bank.name}
-        subTitle={
-          bank.city
-            ? `${bank.city}${bank.state ? ", " + bank.state : ""}`
-            : undefined
-        }
-        className="mb-3"
-      >
-        <div className="mb-2">
-          <b>Address:</b> {bank.address}
-        </div>
-        <div className="mb-2">
-          <b>Contact:</b> {bank.contactNumber}
-        </div>
-        <div className="mb-2">
-          <b>Email:</b> {bank.email}
-        </div>
-        {bank.bloodTypesAvailable && bank.bloodTypesAvailable.length > 0 && (
-          <div className="mb-2">
-            <b>Blood Types:</b> {bank.bloodTypesAvailable.join(", ")}
-          </div>
-        )}        <div className="mt-3">
-          {bank._id ? (
-            <Link to={`/blood-banks/${bank._id}`}>
-              <Button label="View Details" className="button-sm mr-2" />
-            </Link>
-          ) : (
-            <Button label="View Details" className="button-sm mr-2" disabled />
-          )}
-        </div>
-      </Card>
+  };  const renderBankCard = (bank: BloodBank) => (
+    <div className="col-12 md:col-6 lg:col-4 xl:col-3" key={bank._id}>
+      <BloodBankCard bloodBank={bank} />
     </div>
   );
 
@@ -119,58 +86,79 @@ const BloodBanksList: React.FC = () => {
       </div>
     );
   }
-
   return (
-    <div className="p-4">
-      <div className="flex justify-content-between align-items-center mb-4">
-        <h1 className="m-0">Blood Banks</h1>
+    <div className="p-4">      {/* Header Section */}
+      <div className="flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center gap-4 mb-5">
+        <div>
+          <h1 className="m-0 text-3xl font-bold text-900 mb-1">Blood Banks</h1>
+          <p className="m-0 text-600 text-sm">Find and manage blood bank locations</p>
+        </div>
+        
         <div className="flex align-items-center gap-2">
           <Link to="/blood-banks/nearby">
             <Button
               label="Find Nearby"
               icon="pi pi-map-marker"
-              className="button-info mr-2"
+              className="p-button-outlined"
+              size="small"
+            />          </Link>
+          <RoleBasedAccess allowedRoles={[UserRole.ADMIN]}>
+            <Button
+              label="Add New"
+              icon="pi pi-plus"
+              onClick={showCreateDialog}
+              size="small"
             />
-          </Link>
-          <Button
-            label="Add New Blood Bank"
-            icon="pi pi-plus"
-            className="button-danger"
-            onClick={showCreateDialog}
-          />
+          </RoleBasedAccess>
+        </div>
+      </div>      {/* Search Section */}
+      <div className="surface-card border-round-lg shadow-1 p-4 mb-4">
+        <div className="flex flex-column lg:flex-row align-items-stretch lg:align-items-center gap-4">
+          <div className="flex-1">
+            <label className="block text-900 font-medium mb-2 text-sm">Search Blood Banks</label>
+            <InputText
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Enter name or city..."
+              className="w-full"
+            />
+          </div>
+          
+          <div className="flex flex-column sm:flex-row align-items-stretch sm:align-items-center gap-3">
+            <div className="flex align-items-center gap-2">
+              <span className="text-sm text-600 font-medium white-space-nowrap">Search by:</span>
+              <div className="flex gap-1">
+                <Button
+                  label="Name"
+                  className={`${
+                    searchMode === "name" ? "p-button-info" : "p-button-outlined"
+                  }`}
+                  onClick={() => handleSearch(searchTerm, "name")}
+                  size="small"
+                />
+                <Button
+                  label="City"
+                  className={`${
+                    searchMode === "city" ? "p-button-info" : "p-button-outlined"
+                  }`}
+                  onClick={() => handleSearch(searchTerm, "city")}
+                  size="small"
+                />
+              </div>
+            </div>
+            
+            {searchMode !== "none" && (
+              <Button
+                label="Clear"
+                icon="pi pi-times"
+                className="p-button-outlined p-button-secondary"
+                onClick={handleClearSearch}
+                size="small"
+              />
+            )}
+          </div>
         </div>
       </div>
-
-      <div className="flex align-items-center justify-content-end mb-3">
-        <InputText
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search blood banks..."
-          className="mr-2"
-        />
-        <Button
-          label="By Name"
-          className={`button-text mr-1${
-            searchMode === "name" ? " button-info" : ""
-          }`}
-          onClick={() => handleSearch(searchTerm, "name")}
-        />
-        <Button
-          label="By City"
-          className={`button-text${
-            searchMode === "city" ? " button-info" : ""
-          }`}
-          onClick={() => handleSearch(searchTerm, "city")}
-        />
-        {searchMode !== "none" && (
-          <Button
-            label="Clear"
-            className="button-text ml-2"
-            onClick={handleClearSearch}
-          />
-        )}
-      </div>
-
       {searchMode !== "none" && (
         <div className="mb-3 p-2 bg-primary-reverse border-round">
           <span>
@@ -178,21 +166,16 @@ const BloodBanksList: React.FC = () => {
             <span className="text-bold">{searchTerm}</span>
           </span>
         </div>
-      )}
-
+      )}{" "}
       {displayedBanks.length === 0 ? (
         <div className="text-center p-5 bg-primary-reverse border-round">
           No blood banks found.
         </div>
       ) : (
-        <DataView
-          value={displayedBanks}
-          layout={layout}
-          itemTemplate={renderBankCard}
-          paginator={false}
-        />
+        <div className="grid">
+          {displayedBanks.map((bank) => renderBankCard(bank))}
+        </div>
       )}
-
       {searchMode === "none" && totalRecords > 0 && (
         <Paginator
           first={(currentPage - 1) * queryParams.limit!}
@@ -202,7 +185,6 @@ const BloodBanksList: React.FC = () => {
           className="p-mt-4"
         />
       )}
-
       <CreateBloodBankForm visible={dialogVisible} onHide={hideCreateDialog} />
     </div>
   );

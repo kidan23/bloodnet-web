@@ -13,6 +13,11 @@ import type { UpdateMedicalInstitutionDto } from "./types";
 import { useRef } from "react";
 import CountrySelect from "../../components/CountrySelect";
 import { extractErrorForToast } from "../../utils/errorHandling";
+import {
+  InteractiveMap,
+  type LatLng,
+  type AddressDetails,
+} from "../../components/map";
 
 interface EditMedicalInstitutionDialogProps {
   visible: boolean;
@@ -39,13 +44,41 @@ const EditMedicalInstitutionDialog: React.FC<
   const [submitted, setSubmitted] = useState(false);
   const toast = useRef<Toast>(null);
 
+  // Location state for InteractiveMap
+  const [currentLocation, setCurrentLocation] = useState<LatLng | null>(null);
+
   const { data: originalInstitution, isLoading } =
     useMedicalInstitution(institutionId);
   const updateMutation = useUpdateMedicalInstitution(institutionId);
-
   useEffect(() => {
     if (originalInstitution && visible) {
       setInstitution(originalInstitution);
+
+      // Set initial location for map
+      if (
+        originalInstitution.location &&
+        originalInstitution.location.coordinates &&
+        originalInstitution.location.coordinates[0] !== 0 &&
+        originalInstitution.location.coordinates[1] !== 0
+      ) {
+        setCurrentLocation({
+          lng: originalInstitution.location.coordinates[0],
+          lat: originalInstitution.location.coordinates[1],
+        });
+        setInstitution((prev) => ({
+          ...prev,
+          coordinates: [
+            originalInstitution.location.coordinates[0],
+            originalInstitution.location.coordinates[1],
+          ],
+        }));
+      }
+    }
+
+    // Reset form when dialog is closed
+    if (!visible) {
+      setSubmitted(false);
+      setCurrentLocation(null);
     }
   }, [originalInstitution, visible]);
 
@@ -64,7 +97,6 @@ const EditMedicalInstitutionDialog: React.FC<
     const { name, checked } = e.target;
     setInstitution((prev) => ({ ...prev, [name]: checked }));
   };
-
   const handleCoordinateChange = (index: number, value: string) => {
     if (!institution.coordinates) return;
 
@@ -76,6 +108,35 @@ const EditMedicalInstitutionDialog: React.FC<
     setInstitution((prev) => ({ ...prev, coordinates }));
   };
 
+  // Handle location change from InteractiveMap
+  const handleLocationChange = (location: LatLng) => {
+    setCurrentLocation(location);
+    const coordinates: [number, number] = [location.lng, location.lat];
+    setInstitution((prev) => ({ ...prev, coordinates }));
+  };
+
+  // Handle address change from reverse geocoding
+  const handleAddressChange = (addressDetails: AddressDetails) => {
+    setInstitution((prev) => ({
+      ...prev,
+      ...(addressDetails.address && { address: addressDetails.address }),
+      ...(addressDetails.city && { city: addressDetails.city }),
+      ...(addressDetails.state && { state: addressDetails.state }),
+      ...(addressDetails.postalCode && {
+        postalCode: addressDetails.postalCode,
+      }),
+      ...(addressDetails.country && { country: addressDetails.country }),
+    }));
+  };
+
+  // Create address object for geocoding
+  const addressForGeocoding = {
+    address: institution.address,
+    city: institution.city,
+    state: institution.state,
+    postalCode: institution.postalCode,
+    country: institution.country,
+  };
   const handleSubmit = async () => {
     setSubmitted(true);
 
@@ -88,26 +149,53 @@ const EditMedicalInstitutionDialog: React.FC<
       !institution.address ||
       !institution.city ||
       !institution.state ||
-      !institution.country
+      !institution.country ||
+      !currentLocation || // Check if location is selected
+      !institution.coordinates ||
+      (institution.coordinates[0] === 0 && institution.coordinates[1] === 0)
     ) {
       toast.current?.show({
         severity: "error",
         summary: "Error",
-        detail: "Please fill in all required fields",
+        detail:
+          "Please fill in all required fields and select a location on the map",
         life: 3000,
       });
       return;
     }
-
     try {
-      await updateMutation.mutateAsync(institution);
+      // Create a clean payload that matches the DTO structure
+      const updatePayload: UpdateMedicalInstitutionDto = {
+        name: institution.name,
+        registrationNumber: institution.registrationNumber,
+        type: institution.type,
+        phoneNumber: institution.phoneNumber,
+        email: institution.email,
+        website: institution.website,
+        address: institution.address,
+        city: institution.city,
+        state: institution.state,
+        postalCode: institution.postalCode,
+        country: institution.country,
+        contactPersonName: institution.contactPersonName,
+        contactPersonRole: institution.contactPersonRole,
+        contactPersonPhone: institution.contactPersonPhone,
+        contactPersonEmail: institution.contactPersonEmail,
+        operatingHours: institution.operatingHours,
+        services: institution.services,
+        coordinates: institution.coordinates,
+        isActive: institution.isActive,
+      };
+
+      await updateMutation.mutateAsync(updatePayload);
       toast.current?.show({
         severity: "success",
         summary: "Success",
         detail: "Medical institution updated successfully",
         life: 3000,
       });
-      onHide();      if (onSuccess) onSuccess();
+      onHide();
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error updating medical institution:", error);
       const { summary, detail } = extractErrorForToast(error);
@@ -175,7 +263,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="registrationNumber" className="font-bold">
@@ -198,7 +285,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="type" className="font-bold">
@@ -220,7 +306,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="phoneNumber" className="font-bold">
@@ -241,7 +326,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="email" className="font-bold">
@@ -256,7 +340,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="website" className="font-bold">
@@ -270,7 +353,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12">
               <div className="field">
                 <label htmlFor="address" className="font-bold">
@@ -291,7 +373,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-4">
               <div className="field">
                 <label htmlFor="city" className="font-bold">
@@ -312,7 +393,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-4">
               <div className="field">
                 <label htmlFor="state" className="font-bold">
@@ -333,7 +413,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12 md:col-4">
               <div className="field">
                 <label htmlFor="postalCode" className="font-bold">
@@ -346,7 +425,8 @@ const EditMedicalInstitutionDialog: React.FC<
                   onChange={handleInputChange}
                 />
               </div>
-            </div>            <div className="col-12 md:col-6">
+            </div>{" "}
+            <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="country" className="font-bold">
                   Country*
@@ -368,11 +448,9 @@ const EditMedicalInstitutionDialog: React.FC<
                 )}
               </div>
             </div>
-
             <div className="col-12">
               <h3>Contact Person Information</h3>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="contactPersonName" className="font-bold">
@@ -386,7 +464,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="contactPersonRole" className="font-bold">
@@ -400,7 +477,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="contactPersonPhone" className="font-bold">
@@ -414,7 +490,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="contactPersonEmail" className="font-bold">
@@ -428,12 +503,30 @@ const EditMedicalInstitutionDialog: React.FC<
                   type="email"
                 />
               </div>
-            </div>
-
+            </div>{" "}
             <div className="col-12">
               <h3>Location and Services</h3>
             </div>
-
+            <div className="col-12">
+              <div className="field mb-3">
+                <label className="font-bold">Location*</label>
+                {/* Interactive Map Component */}
+                <InteractiveMap
+                  onLocationChange={handleLocationChange}
+                  initialMarkerPosition={currentLocation}
+                  enableReverseGeocoding={true}
+                  onAddressChange={handleAddressChange}
+                  addressForGeocoding={addressForGeocoding}
+                  locationHint="Click on the map to select the medical institution location, or enter the address above and click 'Find from Address'"
+                  height="400px"
+                  showHints={true}
+                  showLocationButton={true}
+                  showAddressButton={true}
+                  showResetButton={true}
+                  showCoordinatesDisplay={true}
+                />
+              </div>
+            </div>
             {institution.coordinates && (
               <>
                 <div className="col-12 md:col-6">
@@ -483,7 +576,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 </div>
               </>
             )}
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="operatingHours" className="font-bold">
@@ -499,7 +591,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12 md:col-6">
               <div className="field">
                 <label htmlFor="services" className="font-bold">
@@ -513,7 +604,6 @@ const EditMedicalInstitutionDialog: React.FC<
                 />
               </div>
             </div>
-
             <div className="col-12">
               <div className="field-checkbox">
                 <Checkbox

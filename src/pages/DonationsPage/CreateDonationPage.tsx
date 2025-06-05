@@ -11,6 +11,8 @@ import { Toast } from "primereact/toast";
 import { TabView, TabPanel } from "primereact/tabview";
 import { InputTextarea } from "primereact/inputtextarea";
 import { useCreateDonation } from "../../state/donations";
+import { UserRole } from "../../state/auth";
+import RoleBasedAccess from "../../components/RoleBasedAccess";
 import {
   donationStatusOptions,
   donationTypeOptions,
@@ -21,7 +23,7 @@ import type { CreateDonationDto } from "./types";
 import { extractErrorForToast } from "../../utils/errorHandling";
 import { notificationsService } from "../../services/notificationsService";
 
-// Component for creating new donation records
+// Component for creating new donation records - Only accessible to authorized roles
 const CreateDonationPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useRef<Toast>(null);
@@ -139,21 +141,37 @@ const CreateDonationPage: React.FC = () => {
       });
     }
   };
-
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <Toast ref={toast} />
+    <RoleBasedAccess 
+      allowedRoles={[UserRole.ADMIN, UserRole.BLOOD_BANK, UserRole.MEDICAL_INSTITUTION]}
+      fallback={
+        <div className="p-4">
+          <Card>
+            <div className="text-center p-4">
+              <i className="pi pi-lock text-6xl text-400 mb-3"></i>
+              <h3>Access Restricted</h3>
+              <p className="text-600">You don't have permission to create donation records. Only administrators, blood banks, and medical institutions can access this feature.</p>
+              <Link to="/donations">
+                <Button label="Back to Donations" icon="pi pi-arrow-left" className="mt-3" />
+              </Link>
+            </div>
+          </Card>
+        </div>
+      }
+    >
+      <div className="p-4 max-w-3xl mx-auto">
+        <Toast ref={toast} />
 
-      <div className="flex align-items-center mb-4">
-        <Link to="/donations">
-          <Button
-            label="Back to Donations"
-            icon="pi pi-arrow-left"
-            className="p-button-outlined mr-3"
-          />
-        </Link>
-        <h1 className="m-0">Record New Donation</h1>
-      </div>
+        <div className="flex align-items-center mb-4">
+          <Link to="/donations">
+            <Button
+              label="Back to Donations"
+              icon="pi pi-arrow-left"
+              className="p-button-outlined mr-3"
+            />
+          </Link>
+          <h1 className="m-0">Record New Donation</h1>
+        </div>
 
       <Card>
         <form onSubmit={handleSubmit}>
@@ -618,10 +636,10 @@ const CreateDonationPage: React.FC = () => {
                 />
               </div>
             </TabPanel>
-          </TabView>
-        </form>
+          </TabView>        </form>
       </Card>
     </div>
+    </RoleBasedAccess>
   );
 };
 

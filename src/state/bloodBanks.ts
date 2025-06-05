@@ -78,6 +78,12 @@ export async function searchNearbyWithBloodType(params: NearbySearchParams & { b
   return data;
 }
 
+// Assign user to blood bank
+export async function assignUserToBloodBank(id: string, userId: string): Promise<BloodBank> {
+  const { data } = await api.patch(`${BLOOD_BANK_API}/${id}`, { user: userId });
+  return data;
+}
+
 // React Query hooks
 export function useBloodBanks(params?: BloodBankQueryParams) {
   return useQuery({
@@ -178,5 +184,17 @@ export function useSearchNearbyWithBloodType(params: NearbySearchParams & { bloo
     queryKey: ['bloodBanks', 'nearbyWithBloodType', params],
     queryFn: () => searchNearbyWithBloodType(params),
     enabled: !!params.latitude && !!params.longitude && !!params.bloodType,
+  });
+}
+
+export function useAssignUserToBloodBank() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, userId }: { id: string; userId: string }) => 
+      assignUserToBloodBank(id, userId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['bloodBanks'] });
+      queryClient.invalidateQueries({ queryKey: ['bloodBank', variables.id] });
+    },
   });
 }

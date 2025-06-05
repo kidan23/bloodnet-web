@@ -1,7 +1,7 @@
 export enum ApprovalStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
 }
 
 export interface MedicalInstitution {
@@ -23,9 +23,17 @@ export interface MedicalInstitution {
   contactPersonEmail?: string;
   operatingHours?: string[];
   services?: string[];
-  coordinates: [number, number]; // [longitude, latitude]
-  isActive?: boolean;
-  user: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };  coordinates: [number, number]; // [longitude, latitude]
+  isActive: boolean;
+  user?: string | {
+    _id: string;
+    email: string;
+    role: string;
+    createdAt: string;
+  };
   approvalStatus?: ApprovalStatus;
   rejectionReason?: string;
   appliedAt?: string;
@@ -52,12 +60,14 @@ export interface CreateMedicalInstitutionDto {
   contactPersonPhone?: string;
   contactPersonEmail?: string;
   operatingHours?: string[];
-  services?: string[];
-  coordinates: [number, number]; // [longitude, latitude]
-  isActive?: boolean;
+  services?: string[];  coordinates: [number, number]; // [longitude, latitude]
+  isActive: boolean;
 }
 
-export interface UpdateMedicalInstitutionDto extends Partial<CreateMedicalInstitutionDto> {}
+export interface UpdateMedicalInstitutionDto
+  extends Partial<CreateMedicalInstitutionDto> {
+  user?: string;
+}
 
 export interface MedicalInstitutionsResponse {
   results: MedicalInstitution[];
@@ -75,7 +85,8 @@ export interface MedicalInstitutionSearchParams {
   [key: string]: any;
 }
 
-export interface MedicalInstitutionApplicationDto extends CreateMedicalInstitutionDto {
+export interface MedicalInstitutionApplicationDto
+  extends CreateMedicalInstitutionDto {
   userEmail: string;
   userPassword: string;
 }

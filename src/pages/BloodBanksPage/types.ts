@@ -1,13 +1,13 @@
 // Types for Blood Banks
 export interface GeoPoint {
-  type: 'Point';
+  type: "Point";
   coordinates: [number, number]; // [longitude, latitude]
 }
 
 export enum ApprovalStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
+  PENDING = "pending",
+  APPROVED = "approved",
+  REJECTED = "rejected",
 }
 
 export interface BloodBank {
@@ -28,7 +28,14 @@ export interface BloodBank {
   licenseNumber?: string;
   establishedDate?: string;
   isActive?: boolean;
-  user?: string; // Reference to User document
+  user?:
+    | string
+    | {
+        _id: string;
+        email: string;
+        role: string;
+        createdAt: string;
+      }; // Reference to User document or populated user details
   approvalStatus?: ApprovalStatus;
   rejectionReason?: string;
   appliedAt?: string;
@@ -69,6 +76,7 @@ export interface BloodBankApplicationDto extends CreateBloodBankDto {
 
 export interface UpdateBloodBankDto extends Partial<CreateBloodBankDto> {
   // Additional fields that can be updated but not required for creation
+  managerId?: string; // ID of the user to assign
 }
 
 export interface BloodBankQueryParams {

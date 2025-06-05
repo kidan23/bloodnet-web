@@ -34,8 +34,8 @@ const NearbyMedicalInstitutionsSearch: React.FC = () => {
     if (!data?.results) return [];
     return data.results.map((institution: MedicalInstitution) => ({
       id: institution._id,
-      lat: institution.coordinates[1], // latitude
-      lng: institution.coordinates[0], // longitude
+      lat: institution.location.coordinates[1], // latitude
+      lng: institution.location.coordinates[0], // longitude
       title: institution.name,
       description: `${institution.type} • ${institution.address}`,
       type: 'hospital' as const,
