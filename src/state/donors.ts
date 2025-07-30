@@ -124,7 +124,7 @@ export async function findNearbyDonors(
     const queryParams = {
       lng,
       lat,
-      radius: radius || 10, // Default 10km radius
+      radius: radius || 11, // Default 10km radius
       ...params
     };
     
